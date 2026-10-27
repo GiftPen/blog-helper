@@ -110,6 +110,8 @@
   .doc .ph .lbl { display: inline-block; background: #fff4d6; color: #a15c00; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 6px; }
   .doc .capt { color: var(--sub); font-size: 14px; }
   .doc .map { color: #1d5bd8; font-weight: 700; }
+  .count { display: inline-block; font-size: 13px; font-weight: 700; border-radius: 8px; padding: 5px 10px; margin-bottom: 12px; background: var(--green-soft); color: var(--green-dark); }
+  .count.short { background: #fff4d6; color: #a15c00; }
   .tags { display: flex; flex-wrap: wrap; gap: 6px; }
   .tag { background: var(--bg); border-radius: 20px; padding: 5px 10px; font-size: 13px; color: var(--sub); }
 
@@ -198,7 +200,7 @@
 
     <div class="card">
       <details class="more">
-        <summary>더 넣기 (필수 내용 · 링크 · 키워드 · 말투)</summary>
+        <summary>더 넣기 (필수 내용 · 링크 · 키워드 · 글자 수 · 말투)</summary>
         <div class="inner">
           <div class="field" id="discField">
             <label>협찬 표시 문구<span class="opt">글 맨 위에 들어가요</span></label>
@@ -223,6 +225,11 @@
               <option>맛집</option><option>카페</option><option>뷰티·미용</option><option>숙소·여행</option>
               <option>제품</option><option>체험·클래스</option><option>기타</option>
             </select>
+          </div>
+          <div class="field">
+            <label>최소 글자 수<span class="opt">공백 포함</span></label>
+            <input id="min_chars" type="number" inputmode="numeric" min="300" max="5000" step="100" value="1000">
+            <div class="hint">체험단 가이드에 "1000자 이상" 같은 조건이 있으면 여기에 적어 주세요.</div>
           </div>
           <div class="field">
             <label>말투</label>
@@ -279,6 +286,7 @@
         <div class="cap" style="margin:0">✏️ 눌러서 바로 고칠 수 있어요</div>
         <label class="toggle"><input type="checkbox" id="centerChk" checked> 가운데 정렬</label>
       </div>
+      <div class="count" id="charCount"></div>
       <div class="doc center" id="doc" contenteditable="true" spellcheck="false"></div>
     </div>
     <div class="card">
@@ -321,7 +329,7 @@
 
 <script>
 /* PC 프로그램의 prompt.py 에서 빌드할 때 넣는 값: SYSTEM_PROMPT, OUTPUT_SCHEMA, TONES, KINDS */
-const PROMPT = {"SYSTEM_PROMPT": "너는 네이버 블로그에 방문 후기를 쓰는 한국인 블로거를 돕는 작가야.\n사용자가 준 사진, 가게 정보, 짧은 메모를 바탕으로 '직접 다녀온 사람이 쓴' 자연스러운 후기 글을 쓴다.\n\n[요즘 네이버 블로그에서 잘 읽히는 글]\n- 직접 경험이 먼저다. 1인칭으로, 언제·누구와·왜 갔는지 같은 상황에서 시작해 실제로 보고 먹고 느낀 순서대로 쓴다.\n- 후기와 함께 검색한 사람이 바로 쓸 수 있는 정보(위치·찾아가는 법·주차·추천 메뉴·이런 분께 추천)를 담는다.\n- 한 문단은 1~3문장으로 짧게. 모바일에서 읽기 편하도록 줄을 자주 바꾼다.\n- 소제목으로 흐름을 나눈다 (예: 첫인상/분위기 → 메뉴 → 맛·사용감 → 아쉬운 점 → 정리).\n- 사진 바로 아래에는 그 사진에 대한 이야기를 쓴다. 사진 설명을 반복하지 말고 느낌·디테일을 덧붙인다.\n- 대표 키워드가 있으면 제목에 넣고, 본문에는 3~5번만 자연스럽게 쓴다. 억지로 반복하지 않는다.\n- 이모지는 소제목이나 강조에만 가끔 쓴다. 과장된 광고 문구(\"인생 맛집\", \"무조건\", \"최고\")는 피한다.\n- 칭찬만 하지 말고 작은 아쉬운 점이나 팁 하나를 솔직하게 넣으면 신뢰도가 올라간다 (메모에 없으면 '이런 점은 참고하세요' 정도의 팁으로).\n- 본문 분량은 공백 포함 1,500~2,500자 정도.\n\n[절대 지킬 것]\n- 메모·필수 내용·사진에서 확인되지 않는 사실(가격, 영업시간, 메뉴 이름, 주차 여부, 직원 응대 등)을 지어내지 않는다. 모르면 쓰지 않는다.\n- 사진에서 보이는 것은 '보이는 대로'만 묘사한다. 맛·향처럼 사진으로 알 수 없는 건 메모에 있을 때만 쓴다.\n- '필수로 넣을 내용'은 빠짐없이, 뜻을 바꾸지 말고 본문에 자연스럽게 녹인다. 링크는 원문 그대로 쓴다.\n- 광고·협찬 표시 문구는 프로그램이 글 맨 위에 따로 붙이므로 본문에 쓰지 않는다.\n- 모든 사진을 한 번씩 글에 배치한다. 사진 번호는 사용자가 붙인 [사진 N] 번호를 그대로 쓴다. 이야기 흐름에 맞게 순서는 바꿔도 된다.\n\n[결과 형식]\n- titles: 제목 후보 3개. 30자 안팎, 지역명/가게명/키워드를 앞쪽에. 낚시성 제목 금지.\n- blocks: 글을 위에서부터 순서대로 나눈 조각.\n  - heading: 소제목 (text 에 내용, photo 는 0)\n  - text: 본문 문단 (줄바꿈은 \\n 으로, photo 는 0). 강조할 짧은 구절은 **굵게** 표시해도 된다.\n  - photo: 사진 자리 (photo 에 사진 번호, text 에는 사진 아래 붙일 짧은 설명 한 줄 또는 빈 문자열)\n  - quote: 한 줄 요약이나 핵심 팁 (photo 는 0)\n  - info: 맨 끝에 넣는 '가게 정보' 정리. text 에 \"상호: …\\n주소: …\" 처럼 아는 정보만 줄마다 적는다 (photo 는 0)\n- tags: 네이버 태그용 해시태그 10~15개. '#' 없이 단어만, 띄어쓰기 없이.\n", "OUTPUT_SCHEMA": {"type": "object", "properties": {"titles": {"type": "array", "items": {"type": "string"}}, "blocks": {"type": "array", "items": {"type": "object", "properties": {"type": {"type": "string", "enum": ["heading", "text", "photo", "quote", "info"]}, "text": {"type": "string"}, "photo": {"type": "integer"}}, "required": ["type", "text", "photo"], "additionalProperties": false}}, "tags": {"type": "array", "items": {"type": "string"}}}, "required": ["titles", "blocks", "tags"], "additionalProperties": false}, "TONES": {"friendly": "친구에게 말하듯 편안한 말투 (~했어요, ~더라고요). 살짝 수다스럽게.", "neat": "깔끔하고 단정한 존댓말 (~습니다/~요 섞어서). 정보 위주로 담백하게.", "casual": "혼잣말 같은 반말 일기체 (~했다, ~였음). 가볍고 솔직하게."}, "KINDS": {"sponsored": "체험단/협찬으로 제공받아 방문한 후기", "own": "내 돈 내고 직접 이용한 후기 (내돈내산)"}};
+const PROMPT = {"SYSTEM_PROMPT": "너는 네이버 블로그에 방문 후기를 쓰는 한국인 블로거를 돕는 작가야.\n사용자가 준 사진, 가게 정보, 짧은 메모를 바탕으로 '직접 다녀온 사람이 쓴' 자연스러운 후기 글을 쓴다.\n\n[요즘 네이버 블로그에서 잘 읽히는 글]\n- 직접 경험이 먼저다. 1인칭으로, 언제·누구와·왜 갔는지 같은 상황에서 시작해 실제로 보고 먹고 느낀 순서대로 쓴다.\n- 후기와 함께 검색한 사람이 바로 쓸 수 있는 정보(위치·찾아가는 법·주차·추천 메뉴·이런 분께 추천)를 담는다.\n- 한 문단은 1~3문장으로 짧게. 모바일에서 읽기 편하도록 줄을 자주 바꾼다.\n- 소제목으로 흐름을 나눈다 (예: 첫인상/분위기 → 메뉴 → 맛·사용감 → 아쉬운 점 → 정리).\n- 사진 바로 아래에는 그 사진에 대한 이야기를 쓴다. 사진 설명을 반복하지 말고 느낌·디테일을 덧붙인다.\n- 대표 키워드가 있으면 제목에 넣고, 본문에는 3~5번만 자연스럽게 쓴다. 억지로 반복하지 않는다.\n- 이모지는 소제목이나 강조에만 가끔 쓴다. 과장된 광고 문구(\"인생 맛집\", \"무조건\", \"최고\")는 피한다.\n- 칭찬만 하지 말고 작은 아쉬운 점이나 팁 하나를 솔직하게 넣으면 신뢰도가 올라간다 (메모에 없으면 '이런 점은 참고하세요' 정도의 팁으로).\n- 본문 분량은 사용자가 정한 최소 글자 수를 반드시 넘긴다. 모자라면 경험 묘사·팁·추천 대상을 더 풀어 쓰고, 같은 말을 반복해 늘리지 않는다.\n\n[절대 지킬 것]\n- 메모·필수 내용·사진에서 확인되지 않는 사실(가격, 영업시간, 메뉴 이름, 주차 여부, 직원 응대 등)을 지어내지 않는다. 모르면 쓰지 않는다.\n- 사진에서 보이는 것은 '보이는 대로'만 묘사한다. 맛·향처럼 사진으로 알 수 없는 건 메모에 있을 때만 쓴다.\n- '필수로 넣을 내용'은 빠짐없이, 뜻을 바꾸지 말고 본문에 자연스럽게 녹인다. 링크는 원문 그대로 쓴다.\n- 광고·협찬 표시 문구는 프로그램이 글 맨 위에 따로 붙이므로 본문에 쓰지 않는다.\n- 모든 사진을 한 번씩 글에 배치한다. 사진 번호는 사용자가 붙인 [사진 N] 번호를 그대로 쓴다. 이야기 흐름에 맞게 순서는 바꿔도 된다.\n\n[결과 형식]\n- titles: 제목 후보 3개. 30자 안팎, 지역명/가게명/키워드를 앞쪽에. 낚시성 제목 금지.\n- blocks: 글을 위에서부터 순서대로 나눈 조각.\n  - heading: 소제목 (text 에 내용, photo 는 0)\n  - text: 본문 문단 (줄바꿈은 \\n 으로, photo 는 0). 강조할 짧은 구절은 **굵게** 표시해도 된다.\n  - photo: 사진 자리 (photo 에 사진 번호, text 에는 사진 아래 붙일 짧은 설명 한 줄 또는 빈 문자열)\n  - quote: 한 줄 요약이나 핵심 팁 (photo 는 0)\n  - info: 맨 끝에 넣는 '가게 정보' 정리. text 에 \"상호: …\\n주소: …\" 처럼 아는 정보만 줄마다 적는다 (photo 는 0)\n- tags: 네이버 태그용 해시태그 10~15개. '#' 없이 단어만, 띄어쓰기 없이.\n", "OUTPUT_SCHEMA": {"type": "object", "properties": {"titles": {"type": "array", "items": {"type": "string"}}, "blocks": {"type": "array", "items": {"type": "object", "properties": {"type": {"type": "string", "enum": ["heading", "text", "photo", "quote", "info"]}, "text": {"type": "string"}, "photo": {"type": "integer"}}, "required": ["type", "text", "photo"], "additionalProperties": false}}, "tags": {"type": "array", "items": {"type": "string"}}}, "required": ["titles", "blocks", "tags"], "additionalProperties": false}, "TONES": {"friendly": "친구에게 말하듯 편안한 말투 (~했어요, ~더라고요). 살짝 수다스럽게.", "neat": "깔끔하고 단정한 존댓말 (~습니다/~요 섞어서). 정보 위주로 담백하게.", "casual": "혼잣말 같은 반말 일기체 (~했다, ~였음). 가볍고 솔직하게."}, "KINDS": {"sponsored": "체험단/협찬으로 제공받아 방문한 후기", "own": "내 돈 내고 직접 이용한 후기 (내돈내산)"}, "LENGTH_RULE": "- 본문 분량: 공백 포함 최소 {min}자 이상 (소제목·사진 설명·가게 정보를 뺀 본문 문단만 세어서). 모자라지 않게 {target}자 정도로 넉넉히 쓴다.", "DEFAULT_MIN_CHARS": 1000, "MIN_CHARS_RANGE": [300, 5000]};
 
 const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"];
 const $ = (id) => document.getElementById(id);
@@ -455,6 +463,16 @@ $("saveKey").addEventListener("click", () => {
 });
 
 /* ---------- 글 만들기 (Gemini) ---------- */
+// prompt.py 의 min_chars / length_rule 과 같은 계산
+function minChars(form) {
+  const [lo, hi] = PROMPT.MIN_CHARS_RANGE;
+  const n = parseInt(String(form.min_chars || PROMPT.DEFAULT_MIN_CHARS).replace(/,/g, ""), 10);
+  return Math.max(lo, Math.min(hi, Number.isNaN(n) ? PROMPT.DEFAULT_MIN_CHARS : n));
+}
+function lengthRule(n) {
+  const target = Math.round((n * 1.3) / 100) * 100;
+  return PROMPT.LENGTH_RULE.replace("{min}", n.toLocaleString("en-US")).replace("{target}", target.toLocaleString("en-US"));
+}
 function buildUserText(form, photoCount) {
   const v = (k) => (form[k] || "").trim();
   const lines = [`위 사진 ${photoCount}장은 이번 방문에서 찍은 사진이야. 아래 정보로 블로그 글을 써 줘.`, ""];
@@ -464,6 +482,7 @@ function buildUserText(form, photoCount) {
   if (v("address")) lines.push(`- 주소: ${v("address")}`);
   if (v("keyword")) lines.push(`- 대표 키워드(검색어): ${v("keyword")}`);
   lines.push(`- 말투: ${PROMPT.TONES[form.tone] || PROMPT.TONES.friendly}`);
+  lines.push(lengthRule(minChars(form)));
   lines.push("", "[내 메모 / 가벼운 후기]", v("memo") || "(메모 없음 - 사진에서 보이는 것 위주로 담백하게)");
   if (v("required")) lines.push("", "[필수로 넣을 내용 - 빠짐없이 반영]", v("required"));
   if (v("links")) lines.push("", "[글에 넣을 링크 - 원문 그대로]", v("links"));
@@ -541,7 +560,7 @@ function collectForm() {
     kind: state.kind, tone: state.tone,
     store_name: $("store_name").value, address: $("address").value, memo: $("memo").value,
     required: $("required").value, links: $("links").value, keyword: $("keyword").value,
-    category: $("category").value, disclosure: $("disclosure").value,
+    category: $("category").value, disclosure: $("disclosure").value, min_chars: $("min_chars").value,
   };
 }
 async function generate() {
@@ -614,9 +633,23 @@ function renderPost() {
     }
   }
   $("doc").innerHTML = html;
+  updateCount();
   $("tags").innerHTML = post.tags.map((t) => `<span class="tag">#${esc(t.replace(/^#/, ""))}</span>`).join("");
 }
 $("centerChk").addEventListener("change", (e) => $("doc").classList.toggle("center", e.target.checked));
+
+function bodyChars() {
+  // 공백 포함 글자 수. 사진 자리·지도 링크·협찬 문구는 빼고 센다.
+  const clone = $("doc").cloneNode(true);
+  clone.querySelectorAll(".ph, [data-map], .disc").forEach((el) => el.remove());
+  return Array.from(clone.children).reduce((n, el) => n + el.textContent.length, 0);
+}
+function updateCount() {
+  const n = bodyChars(), goal = minChars(state.form || {}), el = $("charCount");
+  el.textContent = n >= goal ? `${n.toLocaleString()}자 ✓ (목표 ${goal.toLocaleString()}자)` : `${n.toLocaleString()}자 · 목표 ${goal.toLocaleString()}자보다 짧아요`;
+  el.classList.toggle("short", n < goal);
+}
+$("doc").addEventListener("input", updateCount);
 $("doc").addEventListener("click", (e) => { if (e.target.closest("a")) e.preventDefault(); });
 
 /* ---------- 복사 ---------- */
@@ -743,7 +776,7 @@ refreshKeyState();
   const last = store.get("last");
   if (last?.post && last?.form) {
     const f = last.form;
-    ["store_name", "address", "memo", "required", "links", "keyword", "category", "disclosure"].forEach((k) => f[k] != null && ($(k).value = f[k]));
+    ["store_name", "address", "memo", "required", "links", "keyword", "category", "disclosure", "min_chars"].forEach((k) => f[k] != null && ($(k).value = f[k]));
     if (f.disclosure) discEdited = true;
     [["kindSeg", "kind"], ["toneSeg", "tone"]].forEach(([id, key]) => { const b = $(id).querySelector(`button[data-v="${f[key]}"]`); if (b) b.click(); });
     state.post = last.post; state.form = f; renderPost();
