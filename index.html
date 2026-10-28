@@ -204,12 +204,18 @@
         <input id="address" placeholder="예) 서울 성동구 연무장길 00">
       </div>
       <div class="field">
-        <label>가게 정보<span class="opt">상호 · 주소 · 영업시간 · 전화번호 · 지도</span></label>
+        <label>가게 정보<span class="opt">글에 표로 들어가요</span></label>
           <div class="hint">휴대폰에서는 자동으로 불러올 수 없어요. 필요하면 직접 적어 주세요. (PC 프로그램은 자동으로 불러와요)</div>
         <label style="margin-top:12px">영업시간<span class="opt">선택</span></label>
         <textarea id="hours" rows="2" placeholder="예) 화~일 11:30~21:00&#10;월 정기휴무"></textarea>
         <label style="margin-top:12px">전화번호<span class="opt">선택</span></label>
         <input id="phone" placeholder="예) 02-123-4567">
+        <label style="margin-top:12px">찾아가는 길<span class="opt">선택</span></label>
+        <input id="directions" placeholder="예) 9호선 마곡나루역 1번 출구 도보 1분">
+        <label style="margin-top:12px">주차<span class="opt">선택</span></label>
+        <input id="parking" placeholder="예) 건물 주차 2시간 무료">
+        <label style="margin-top:12px">특이사항<span class="opt">선택</span></label>
+        <input id="notes" placeholder="예) 네이버 예약 전용석">
         <label style="margin-top:12px">가게 정보 넣을 위치</label>
         <select id="info_pos"><option value="top">글 맨 위 (기본)</option><option value="bottom">글 맨 아래</option></select>
       </div>
@@ -287,6 +293,12 @@
               <button data-v="neat">깔끔하게</button>
               <button data-v="casual">일기체</button>
             </div>
+          </div>
+          <div class="field">
+            <label>글 흐름<span class="opt">이야기를 풀어 가는 순서</span></label>
+            <select id="flow"></select>
+            <div class="hint" id="flowSteps"></div>
+            <textarea id="flow_custom" rows="4" style="display:none;margin-top:8px" placeholder="한 줄에 하나씩 순서대로 적어 주세요&#10;예)&#10;방문 계기&#10;주차·웨이팅&#10;메뉴 후기&#10;아쉬운 점"></textarea>
           </div>
       </div>
     </div>
@@ -404,7 +416,7 @@
 
 <script>
 /* PC 프로그램의 prompt.py 에서 빌드할 때 넣는 값: SYSTEM_PROMPT, OUTPUT_SCHEMA, TONES, KINDS */
-const PROMPT = {"SYSTEM_PROMPT": "너는 네이버 블로그에 방문 후기를 쓰는 한국인 블로거를 돕는 작가야.\n사용자가 준 사진, 가게 정보, 짧은 메모를 바탕으로 '직접 다녀온 사람이 쓴' 자연스러운 후기 글을 쓴다.\n\n[요즘 네이버 블로그에서 잘 읽히는 글]\n- 직접 경험이 먼저다. 1인칭으로, 언제·누구와·왜 갔는지 같은 상황에서 시작해 실제로 보고 먹고 느낀 순서대로 쓴다.\n- 후기와 함께 검색한 사람이 바로 쓸 수 있는 정보(위치·찾아가는 법·주차·추천 메뉴·이런 분께 추천)를 담는다.\n- 한 문단은 1~3문장으로 짧게. 모바일에서 읽기 편하도록 한 문장이 끝날 때마다 줄을 바꾸고(\\n),\n  한 줄은 공백 포함 25자 안팎으로 짧게 쓴다. 긴 문장은 쉼표나 '~는데', '~해서' 뒤에서 줄을 바꿔 두 줄로 나눈다.\n- 소제목으로 흐름을 나눈다. 소제목은 무슨 내용인지 바로 알 수 있게 담백하고 짧게 (예: '가게 위치와 외관', '웨이팅', '주문한 메뉴', '아쉬웠던 점').\n  비유·말장난·광고 카피 같은 소제목은 금지 (예: '간판부터 직진하는 이름', '~의 정석', '반전 매력', '맛의 향연', '~가 다 했다').\n- 사진 바로 아래에는 그 사진에 대한 이야기를 쓴다. 사진 설명을 반복하지 말고 느낌·디테일을 덧붙인다.\n- 지정 키워드가 있으면 사용자가 정한 횟수(키워드 조건)를 반드시 지킨다. 띄어쓰기까지 글자 그대로 쓰고, 한곳에 몰지 말고 문장 속에 자연스럽게 녹인다.\n- 이모지는 쓰지 않는다. 과장된 광고 문구(\"인생 맛집\", \"무조건\", \"최고\")는 피한다.\n- 칭찬만 하지 말고 작은 아쉬운 점이나 팁 하나를 솔직하게 넣으면 신뢰도가 올라간다 (메모에 없으면 '이런 점은 참고하세요' 정도의 팁으로).\n- 본문 분량은 사용자가 정한 최소 글자 수를 반드시 넘긴다. 모자라면 경험 묘사·팁·추천 대상을 더 풀어 쓰고, 같은 말을 반복해 늘리지 않는다.\n\n[AI가 쓴 티 나지 않게 - 진짜 사람이 쓴 블로그처럼]\n- 이런 표현은 쓰지 않는다: \"오늘은 ~를 소개해 드리려고 합니다\", \"~에 대해 알아보겠습니다\", \"결론적으로\", \"전반적으로\", \"총평\",\n  \"~라고 할 수 있습니다\", \"만족스러운 경험이었습니다\", \"특별한 경험\", \"완벽한 조화\", \"눈과 입이 즐거운\", \"오감을 만족\",\n  \"강력 추천합니다\", \"~하는 것을 추천드립니다\", \"다양한 ~를 즐길 수 있는\", \"~뿐만 아니라 ~까지\", \"여러분도 꼭 한번\",\n  \"정리하면\", \"정리하자면\", \"요약하자면\", \"한마디로\", \"한 줄 평\", \"결론은\", \"마무리하자면\", \"이상 ~ 후기였습니다\".\n- 재치 있는 척하는 표현, 비유, 말장난을 쓰지 않는다. 있는 그대로 담백하게 쓴다.\n- 문장 끝맺음을 매번 똑같이 하지 않는다 (~어요만 반복 금지. ~더라고요, ~네요, ~했는데, ~거든요, 가끔은 짧게 끊기도).\n  문장 길이도 길고 짧게 섞는다.\n- '맛도, 분위기도, 서비스도 모두' 처럼 셋을 나란히 늘어놓는 말, 모든 문단을 칭찬으로 마무리하는 패턴, 문단마다 같은 구조를 피한다.\n- 사람 냄새는 말투로 낸다: 솔직한 속마음(솔직히, 생각보다, 은근, 근데), 메모에 있는 구체적인 상황을 생생하게.\n  메모에 없는 일화·대사·행동(누가 뭐라고 했다, 뭘 해 줬다 등)은 절대 만들지 않는다. 내 느낌을 덧붙이는 건 괜찮다.\n- 주소·영업시간 같은 정보를 본문 문장에 그대로 끼워 넣지 않는다 (\"주소는 ~예요\" 금지). 가게 정보는 프로그램이 따로 넣는다.\n- 본문에 '항목: 내용' 식의 나열이나 글머리 기호 목록을 쓰지 않는다. 이야기하듯 문장으로 쓴다.\n- 'ㅎㅎ', 'ㅠㅠ' 같은 표현은 글 전체에 1~3번 정도만 자연스럽게. 이모지는 제목·소제목·본문 어디에도 쓰지 않는다.\n- 마지막은 거창한 정리 대신 \"다음엔 ○○도 먹어 보려고요\" 같은 짧고 담백한 한마디로 끝낸다.\n\n[절대 지킬 것]\n- 메모·필수 내용·사진에서 확인되지 않는 사실(가격, 영업시간, 메뉴 이름, 주차 여부, 직원 응대 등)을 지어내지 않는다. 모르면 쓰지 않는다.\n- 사진에서 보이는 것은 '보이는 대로'만 묘사한다. 맛·향처럼 사진으로 알 수 없는 건 메모에 있을 때만 쓴다.\n- '필수로 넣을 내용'은 빠짐없이, 뜻을 바꾸지 말고 본문에 자연스럽게 녹인다. 링크는 원문 그대로 쓴다.\n- 광고·협찬 표시 문구는 프로그램이 글 맨 위에 따로 붙이므로 본문에 쓰지 않는다.\n- 모든 사진을 한 번씩 글에 배치한다. 사진 번호는 사용자가 붙인 [사진 N] 번호를 그대로 쓴다. 이야기 흐름에 맞게 순서는 바꿔도 된다.\n\n[결과 형식]\n- titles: 제목 후보 3개. 30자 안팎, 지역명/가게명/키워드를 앞쪽에. 낚시성 제목 금지. 키워드 조건이 있으면 3개 모두 지킨다.\n- blocks: 글을 위에서부터 순서대로 나눈 조각.\n  - heading: 소제목 (text 에 내용, photo 는 0)\n  - text: 본문 문단 (줄바꿈은 \\n 으로, photo 는 0). 강조할 짧은 구절은 **굵게** 표시해도 된다.\n  - photo: 사진 자리 (photo 에 사진 번호, text 에는 사진 아래 붙일 짧은 설명 한 줄 또는 빈 문자열)\n  - quote: 꼭 알려 주고 싶은 팁 한 줄 (광고 문구 말고 친구에게 귀띔하듯, 글 전체에 0~1개, photo 는 0)\n  - info: 쓰지 않는다. 가게 정보(상호·주소·영업시간·전화번호·지도)는 프로그램이 따로 넣는다.\n- tags: 네이버 태그용 해시태그 10~15개. '#' 없이 단어만, 띄어쓰기 없이.\n", "OUTPUT_SCHEMA": {"type": "object", "properties": {"titles": {"type": "array", "items": {"type": "string"}}, "blocks": {"type": "array", "items": {"type": "object", "properties": {"type": {"type": "string", "enum": ["heading", "text", "photo", "quote", "info"]}, "text": {"type": "string"}, "photo": {"type": "integer"}}, "required": ["type", "text", "photo"], "additionalProperties": false}}, "tags": {"type": "array", "items": {"type": "string"}}}, "required": ["titles", "blocks", "tags"], "additionalProperties": false}, "TONES": {"friendly": "친구에게 말하듯 편안한 말투 (~했어요, ~더라고요). 살짝 수다스럽게.", "neat": "깔끔하고 단정한 존댓말 (~습니다/~요 섞어서). 정보 위주로 담백하게.", "casual": "혼잣말 같은 반말 일기체 (~했다, ~였음). 가볍고 솔직하게."}, "KINDS": {"sponsored": "체험단/협찬으로 제공받아 방문한 후기", "own": "내 돈 내고 직접 이용한 후기 (내돈내산)"}, "LENGTH_RULE": "- 본문 분량: 공백 포함 최소 {min}자 이상 (소제목·사진 설명·가게 정보를 뺀 본문 문단만 세어서). 모자라지 않게 {target}자 정도로 넉넉히 쓴다.", "DEFAULT_MIN_CHARS": 1000, "MIN_CHARS_RANGE": [300, 5000], "KW_TITLE_RULE": "- 키워드 조건(제목): 제목 후보마다 '{kw}' 키워드를 띄어쓰기까지 그대로 {n}회 넣는다.", "KW_TITLE_NONE": "- 키워드 조건(제목): 제목에는 '{kw}' 키워드를 넣지 않아도 된다.", "KW_BODY_RULE": "- 키워드 조건(본문): 본문(소제목·문단·사진 설명·요약)에 '{kw}' 키워드를 띄어쓰기까지 그대로 최소 {n}회 넣는다. 모자라지 않게 {more}회 정도로, 글 전체에 고르게 나눠 쓴다.", "DEFAULT_KW_TITLE": 1, "DEFAULT_KW_BODY": 3};
+const PROMPT = {"SYSTEM_PROMPT": "너는 네이버 블로그에 방문 후기를 쓰는 한국인 블로거를 돕는 작가야.\n사용자가 준 사진, 가게 정보, 짧은 메모를 바탕으로 '직접 다녀온 사람이 쓴' 자연스러운 후기 글을 쓴다.\n\n[요즘 네이버 블로그에서 잘 읽히는 글]\n- 직접 경험이 먼저다. 1인칭으로, 실제로 보고 먹고 느낀 것을 쓴다. 이야기 순서는 '글 흐름' 조건을 따른다.\n- 후기와 함께 검색한 사람이 바로 쓸 수 있는 정보(위치·찾아가는 법·주차·추천 메뉴·이런 분께 추천)를 담는다.\n- 한 문단은 1~3문장으로 짧게. 모바일에서 읽기 편하도록 한 문장이 끝날 때마다 줄을 바꾸고(\\n),\n  한 줄은 공백 포함 25자 안팎으로 짧게 쓴다. 긴 문장은 쉼표나 '~는데', '~해서' 뒤에서 줄을 바꿔 두 줄로 나눈다.\n- 소제목으로 흐름을 나눈다. 소제목은 무슨 내용인지 바로 알 수 있게 담백하고 짧게 (예: '가게 위치와 외관', '웨이팅', '주문한 메뉴', '아쉬웠던 점').\n  비유·말장난·광고 카피 같은 소제목은 금지 (예: '간판부터 직진하는 이름', '~의 정석', '반전 매력', '맛의 향연', '~가 다 했다').\n- 사진 바로 아래에는 그 사진에 대한 이야기를 쓴다. 사진 설명을 반복하지 말고 느낌·디테일을 덧붙인다.\n- 지정 키워드가 있으면 사용자가 정한 횟수(키워드 조건)를 반드시 지킨다. 띄어쓰기까지 글자 그대로 쓰고, 한곳에 몰지 말고 문장 속에 자연스럽게 녹인다.\n- 이모지는 쓰지 않는다. 과장된 광고 문구(\"인생 맛집\", \"무조건\", \"최고\")는 피한다.\n- 칭찬만 하지 말고 작은 아쉬운 점이나 팁 하나를 솔직하게 넣으면 신뢰도가 올라간다 (메모에 없으면 '이런 점은 참고하세요' 정도의 팁으로).\n- 본문 분량은 사용자가 정한 최소 글자 수를 반드시 넘긴다. 모자라면 경험 묘사·팁·추천 대상을 더 풀어 쓰고, 같은 말을 반복해 늘리지 않는다.\n\n[AI가 쓴 티 나지 않게 - 진짜 사람이 쓴 블로그처럼]\n- 이런 표현은 쓰지 않는다: \"오늘은 ~를 소개해 드리려고 합니다\", \"~에 대해 알아보겠습니다\", \"결론적으로\", \"전반적으로\", \"총평\",\n  \"~라고 할 수 있습니다\", \"만족스러운 경험이었습니다\", \"특별한 경험\", \"완벽한 조화\", \"눈과 입이 즐거운\", \"오감을 만족\",\n  \"강력 추천합니다\", \"~하는 것을 추천드립니다\", \"다양한 ~를 즐길 수 있는\", \"~뿐만 아니라 ~까지\", \"여러분도 꼭 한번\",\n  \"정리하면\", \"정리하자면\", \"요약하자면\", \"한마디로\", \"한 줄 평\", \"결론은\", \"마무리하자면\", \"이상 ~ 후기였습니다\".\n- 재치 있는 척하는 표현, 비유, 말장난을 쓰지 않는다. 있는 그대로 담백하게 쓴다.\n- 문장 끝맺음을 매번 똑같이 하지 않는다 (~어요만 반복 금지. ~더라고요, ~네요, ~했는데, ~거든요, 가끔은 짧게 끊기도).\n  문장 길이도 길고 짧게 섞는다.\n- '맛도, 분위기도, 서비스도 모두' 처럼 셋을 나란히 늘어놓는 말, 모든 문단을 칭찬으로 마무리하는 패턴, 문단마다 같은 구조를 피한다.\n- 사람 냄새는 말투로 낸다: 솔직한 속마음(솔직히, 생각보다, 은근, 근데), 메모에 있는 구체적인 상황을 생생하게.\n  메모에 없는 일화·대사·행동(누가 뭐라고 했다, 뭘 해 줬다 등)은 절대 만들지 않는다. 내 느낌을 덧붙이는 건 괜찮다.\n- 주소·영업시간 같은 정보를 본문 문장에 그대로 끼워 넣지 않는다 (\"주소는 ~예요\" 금지). 가게 정보는 프로그램이 따로 넣는다.\n- 본문에 '항목: 내용' 식의 나열이나 글머리 기호 목록을 쓰지 않는다. 이야기하듯 문장으로 쓴다.\n- 'ㅎㅎ', 'ㅠㅠ' 같은 표현은 글 전체에 1~3번 정도만 자연스럽게. 이모지는 제목·소제목·본문 어디에도 쓰지 않는다.\n- 마지막은 거창한 정리 대신 \"다음엔 ○○도 먹어 보려고요\" 같은 짧고 담백한 한마디로 끝낸다.\n\n[절대 지킬 것]\n- 메모·필수 내용·사진에서 확인되지 않는 사실(가격, 영업시간, 메뉴 이름, 주차 여부, 직원 응대 등)을 지어내지 않는다. 모르면 쓰지 않는다.\n- 사진에서 보이는 것은 '보이는 대로'만 묘사한다. 맛·향처럼 사진으로 알 수 없는 건 메모에 있을 때만 쓴다.\n- '필수로 넣을 내용'은 빠짐없이, 뜻을 바꾸지 말고 본문에 자연스럽게 녹인다. 링크는 원문 그대로 쓴다.\n- 광고·협찬 표시 문구는 프로그램이 글 맨 위에 따로 붙이므로 본문에 쓰지 않는다.\n- 모든 사진을 한 번씩 글에 배치한다. 사진 번호는 사용자가 붙인 [사진 N] 번호를 그대로 쓴다. 이야기 흐름에 맞게 순서는 바꿔도 된다.\n\n[결과 형식]\n- titles: 제목 후보 3개. 30자 안팎, 지역명/가게명/키워드를 앞쪽에. 낚시성 제목 금지. 키워드 조건이 있으면 3개 모두 지킨다.\n- blocks: 글을 위에서부터 순서대로 나눈 조각.\n  - heading: 소제목 (text 에 내용, photo 는 0)\n  - text: 본문 문단 (줄바꿈은 \\n 으로, photo 는 0). 강조할 짧은 구절은 **굵게** 표시해도 된다.\n  - photo: 사진 자리 (photo 에 사진 번호, text 에는 사진 아래 붙일 짧은 설명 한 줄 또는 빈 문자열)\n  - quote: 꼭 알려 주고 싶은 팁 한 줄 (광고 문구 말고 친구에게 귀띔하듯, 글 전체에 0~1개, photo 는 0)\n  - info: 쓰지 않는다. 가게 정보(상호·주소·영업시간·전화번호·지도)는 프로그램이 따로 넣는다.\n- tags: 네이버 태그용 해시태그 10~15개. '#' 없이 단어만, 띄어쓰기 없이.\n", "OUTPUT_SCHEMA": {"type": "object", "properties": {"titles": {"type": "array", "items": {"type": "string"}}, "blocks": {"type": "array", "items": {"type": "object", "properties": {"type": {"type": "string", "enum": ["heading", "text", "photo", "quote", "info"]}, "text": {"type": "string"}, "photo": {"type": "integer"}}, "required": ["type", "text", "photo"], "additionalProperties": false}}, "tags": {"type": "array", "items": {"type": "string"}}}, "required": ["titles", "blocks", "tags"], "additionalProperties": false}, "TONES": {"friendly": "친구에게 말하듯 편안한 말투 (~했어요, ~더라고요). 살짝 수다스럽게.", "neat": "깔끔하고 단정한 존댓말 (~습니다/~요 섞어서). 정보 위주로 담백하게.", "casual": "혼잣말 같은 반말 일기체 (~했다, ~였음). 가볍고 솔직하게."}, "KINDS": {"sponsored": "체험단/협찬으로 제공받아 방문한 후기", "own": "내 돈 내고 직접 이용한 후기 (내돈내산)"}, "LENGTH_RULE": "- 본문 분량: 공백 포함 최소 {min}자 이상 (소제목·사진 설명·가게 정보를 뺀 본문 문단만 세어서). 모자라지 않게 {target}자 정도로 넉넉히 쓴다.", "DEFAULT_MIN_CHARS": 1000, "MIN_CHARS_RANGE": [300, 5000], "KW_TITLE_RULE": "- 키워드 조건(제목): 제목 후보마다 '{kw}' 키워드를 띄어쓰기까지 그대로 {n}회 넣는다.", "KW_TITLE_NONE": "- 키워드 조건(제목): 제목에는 '{kw}' 키워드를 넣지 않아도 된다.", "KW_BODY_RULE": "- 키워드 조건(본문): 본문(소제목·문단·사진 설명·요약)에 '{kw}' 키워드를 띄어쓰기까지 그대로 최소 {n}회 넣는다. 모자라지 않게 {more}회 정도로, 글 전체에 고르게 나눠 쓴다.", "DEFAULT_KW_TITLE": 1, "DEFAULT_KW_BODY": 3, "FLOWS": {"visit": {"name": "기본 방문 후기", "steps": "방문 계기 → 위치·외관 → 내부·좌석 → 메뉴판·주문 → 메뉴별 후기 → 아쉬운 점·팁 → 다시 갈지"}, "conclusion": {"name": "결론 먼저", "steps": "첫 문단에 한 줄 결론(어땠는지, 누구에게 맞는지) → 핵심(웨이팅·가격대·추천 메뉴)을 짧게 → 자세한 후기 → 팁 → 짧은 마무리"}, "qa": {"name": "궁금증 해결형", "steps": "검색한 사람이 궁금해할 것(주차·예약·웨이팅·좌석·아이 동반 등) 중 메모에 있는 것부터 하나씩 → 메뉴 후기는 짧게 → 팁"}, "diary": {"name": "일기형", "steps": "그날 상황과 같이 간 사람 → 가는 길·첫인상 → 음식·공간 → 느낀 점"}, "product": {"name": "제품 리뷰", "steps": "써 보게 된 계기 → 구성품·첫인상 → 사용법 → 며칠 써 본 후기 → 장단점 → 추천 대상"}, "stay": {"name": "숙소 후기", "steps": "고른 이유 → 위치·교통 → 체크인 → 객실 → 공용공간·조식 → 주변 → 소감"}}, "FLOW_RULE": "- 글 흐름: 이야기를 이 순서로 풀어 가고, 소제목도 이 흐름에 맞춰 나눈다. 메모·사진에 없는 단계는 지어내지 말고 건너뛴다.\n  {steps}", "DEFAULT_FLOW": "visit"};
 
 const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"];
 const $ = (id) => document.getElementById(id);
@@ -468,6 +480,30 @@ function updateDisclosure() {
   $("discField").style.display = state.kind === "sponsored" ? "" : "none";
 }
 updateDisclosure();
+
+/* ---------- 글 흐름 ---------- */
+let FLOWS = {}, flowTouched = false;
+const CATEGORY_FLOW = { "제품": "product", "숙소·여행": "stay" };
+function fillFlowSel(flows, def) {
+  FLOWS = flows;
+  $("flow").innerHTML = Object.entries(flows).map(([k, f]) => `<option value="${k}">${esc(f.name)}${k === def ? " (기본)" : ""}</option>`).join("") +
+    '<option value="custom">직접 만들기</option>';
+  $("flow").value = def;
+  updateFlowUI();
+}
+function updateFlowUI() {
+  const k = $("flow").value, custom = k === "custom";
+  $("flow_custom").style.display = custom ? "" : "none";
+  $("flowSteps").textContent = custom ? "적은 순서대로 이야기를 풀어 가요." : (FLOWS[k] ? FLOWS[k].steps : "");
+}
+$("flow").addEventListener("change", () => { flowTouched = true; updateFlowUI(); });
+$("category").addEventListener("change", () => {
+  // 흐름을 직접 고르지 않았으면 분야에 맞는 흐름으로
+  if (flowTouched) return;
+  $("flow").value = CATEGORY_FLOW[$("category").value] || Object.keys(FLOWS)[0];
+  updateFlowUI();
+});
+fillFlowSel(PROMPT.FLOWS, PROMPT.DEFAULT_FLOW);
 
 /* ---------- 사진 ---------- */
 async function loadBitmap(file) {
@@ -606,6 +642,15 @@ function keywordRules(form) {
   if (body) rules.push(fill(PROMPT.KW_BODY_RULE, body, body + 1));
   return rules;
 }
+function flowRule(form) {
+  let key = form.flow || PROMPT.DEFAULT_FLOW;
+  if (key === "custom") {
+    const steps = (form.flow_custom || "").split("\n").map((x) => x.replace(/^[\s\-·]+|[\s\-·]+$/g, "")).filter(Boolean);
+    if (steps.length) return PROMPT.FLOW_RULE.replace("{steps}", steps.join(" → "));
+    key = PROMPT.DEFAULT_FLOW;
+  }
+  return PROMPT.FLOW_RULE.replace("{steps}", (PROMPT.FLOWS[key] || PROMPT.FLOWS[PROMPT.DEFAULT_FLOW]).steps);
+}
 function buildUserText(form, photoCount) {
   const v = (k) => (form[k] || "").trim();
   const lines = [`위 사진 ${photoCount}장은 이번 방문에서 찍은 사진이야. 아래 정보로 블로그 글을 써 줘.`, ""];
@@ -615,6 +660,7 @@ function buildUserText(form, photoCount) {
   if (v("address")) lines.push(`- 주소: ${v("address")}`);
   if (v("keyword")) lines.push(`- 지정 키워드(검색어): ${v("keyword")}`);
   lines.push(`- 말투: ${PROMPT.TONES[form.tone] || PROMPT.TONES.friendly}`);
+  lines.push(flowRule(form));
   lines.push(lengthRule(minChars(form)));
   lines.push(...keywordRules(form));
   lines.push("", "[내 메모 / 가벼운 후기]", v("memo") || "(메모 없음 - 사진에서 보이는 것 위주로 담백하게)");
@@ -756,7 +802,9 @@ function collectForm() {
     required: $("required").value, links: $("links").value, keyword: $("keyword").value,
     category: $("category").value, disclosure: $("disclosure").value, min_chars: $("min_chars").value, banner: $("banner").value,
     kw_title: $("kw_title").value, kw_body: $("kw_body").value,
-    hours: $("hours").value, phone: $("phone").value, info_pos: $("info_pos").value,
+    flow: $("flow").value, flow_custom: $("flow_custom").value,
+    hours: $("hours").value, phone: $("phone").value,
+    directions: $("directions").value, parking: $("parking").value, notes: $("notes").value, info_pos: $("info_pos").value,
     place_id: state.place?.id || "", place_addr: state.place ? `${state.place.road} ${state.place.jibun}` : "",
   };
 }
@@ -812,11 +860,18 @@ function noEmoji(s) {
   return String(s || "").replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\uFE0F\u200D]/gu, "").replace(/[ \t]{2,}/g, " ").replace(/^[ \t]+|[ \t]+$/gm, "");
 }
 function infoHtml(form) {
-  const rows = [["상호", form.store_name], ["주소", form.address], ["영업시간", form.hours], ["전화번호", form.phone]]
-    .filter(([, v]) => (v || "").trim())
-    .map(([k, v]) => `${k}: ${v.trim().split("\n").map(esc).join("<br>")}`);
-  return (rows.length ? `<p class="info">${rows.join("<br>")}</p>` : "") +
-    `<p><a class="map" data-map="1" href="${esc(mapUrl(form))}">네이버 지도에서 ${esc(form.store_name.trim())} 보기</a></p>`;
+  // 가게 요약 표 (네이버 에디터에 붙이면 표로 들어간다)
+  const TD = "padding:12px 16px;border-bottom:1px solid #e5e5e5;color:#000000;font-size:15px;";
+  const lines = (v) => (v || "").split("\n").map((x) => esc(x.trim())).filter(Boolean).join("<br>");
+  const rows = [
+    ["주소", [form.address, form.directions].map((x) => (x || "").trim()).filter(Boolean).join("\n")],
+    ["영업시간", form.hours], ["전화번호", form.phone], ["주차", form.parking], ["특이사항", form.notes],
+  ].filter(([, v]) => (v || "").trim());
+  const table = '<table class="info" style="width:100%;border-collapse:collapse;border-top:2px solid #333333;border-bottom:2px solid #333333;"><tbody>' +
+    `<tr><td colspan="2" style="text-align:center;padding:14px 16px;font-weight:bold;border-bottom:1px solid #333333;color:#000000;font-size:15px;">${esc(form.store_name.trim())}</td></tr>` +
+    rows.map(([k, v]) => `<tr><td style="${TD}width:25%;text-align:center;font-weight:bold;">${k}</td><td style="${TD}">${lines(v)}</td></tr>`).join("") +
+    "</tbody></table>";
+  return table + `<p><a class="map" data-map="1" href="${esc(mapUrl(form))}">네이버 지도에서 ${esc(form.store_name.trim())} 보기</a></p>`;
 }
 function renderPost() {
   const { post, form } = state;
@@ -891,7 +946,7 @@ $("doc").addEventListener("click", (e) => { if (e.target.closest("a")) e.prevent
 /* ---------- 복사 ---------- */
 function htmlToText(html) {
   const tmp = document.createElement("div");
-  tmp.innerHTML = html.replace(/<br\s*\/?>/gi, "\n");
+  tmp.innerHTML = html.replace(/<br\s*\/?>/gi, "\n").replace(/<\/tr>/gi, "\n</tr>").replace(/<\/td>/gi, " </td>");
   return tmp.textContent;
 }
 function exportHtml({ plain = false } = {}) {
@@ -911,7 +966,7 @@ function exportHtml({ plain = false } = {}) {
     bn.replaceWith(p);
   });
   clone.querySelectorAll("[data-map]").forEach((m) => {
-    m.outerHTML = plain ? `📍 네이버 지도: ${m.getAttribute("href")}`
+    m.outerHTML = plain ? `네이버 지도: ${m.getAttribute("href")}`
       : `<a href="${esc(m.getAttribute("href"))}"><span style="color:#000000;font-size:15px;font-weight:normal;">${m.innerHTML}</span></a>`;
   });
   clone.querySelectorAll(".disc").forEach((d) => { d.setAttribute("style", "text-align:center;"); d.innerHTML = `<span style="color:#000000;font-size:15px;font-weight:normal;">${d.innerHTML}</span>`; });
@@ -1149,7 +1204,8 @@ fillBannerSelect();
   const last = store.get("last");
   if (last?.post && last?.form) {
     const f = last.form;
-    ["store_name", "address", "memo", "required", "links", "keyword", "category", "disclosure", "min_chars", "kw_title", "kw_body", "banner", "hours", "phone", "info_pos"].forEach((k) => f[k] != null && ($(k).value = f[k]));
+    ["store_name", "address", "memo", "required", "links", "keyword", "category", "disclosure", "min_chars", "kw_title", "kw_body", "banner", "hours", "phone", "directions", "parking", "notes", "info_pos", "flow", "flow_custom"].forEach((k) => f[k] != null && ($(k).value = f[k]));
+    if (f.flow) { flowTouched = true; updateFlowUI(); }
     state.place = f.place_id ? { id: f.place_id, road: f.place_addr || "", jibun: "" } : null;
     [["kindSeg", "kind"], ["toneSeg", "tone"]].forEach(([id, key]) => { const b = $(id).querySelector(`button[data-v="${f[key]}"]`); if (b) b.click(); });
     state.post = last.post; state.form = f; renderPost();
