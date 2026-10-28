@@ -110,14 +110,14 @@
   .doc { font-size: 16px; line-height: 1.85; outline: none; word-break: keep-all; overflow-wrap: anywhere; }
   .doc.center p, .doc.center h3, .doc.center .ph { text-align: center; }
   .doc p { margin: 0 0 16px; }
-  .doc h3 { font-size: 18px; margin: 28px 0 12px; }
-  .doc .disc { color: #d6336c; font-weight: 700; font-size: 14px; background: #fff0f5; border-radius: 8px; padding: 10px 12px; text-align: center; }
+  .doc h3 { font-size: inherit; margin: 28px 0 12px; }
+  .doc .disc { color: inherit; font-weight: 400; font-size: inherit; background: #f4f5f7; border-radius: 8px; padding: 10px 12px; text-align: center; }
   .doc blockquote { margin: 20px 0; padding: 12px 14px; border-left: 4px solid var(--green); background: var(--green-soft); border-radius: 0 8px 8px 0; text-align: left; }
   .doc .info { background: var(--bg); border-radius: 10px; padding: 14px 16px; text-align: left !important; font-size: 15px; }
   .doc .ph { margin: 8px 0 6px; }
   .doc .ph img { max-width: 100%; max-height: 300px; border-radius: 6px; display: block; margin: 0 auto 6px; }
   .doc .ph .lbl { display: inline-block; background: #fff4d6; color: #a15c00; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 6px; }
-  .doc .capt { color: var(--sub); font-size: 14px; }
+  .doc .capt { color: inherit; }
   .doc .map { color: #1d5bd8; font-weight: 700; }
   .banner-row { display: flex; gap: 8px; }
   .banner-row select { flex: 1; }
@@ -232,7 +232,7 @@
       <div>
           <div class="field" id="discField">
             <label>협찬 표시 문구<span class="opt">글 맨 위에 들어가요</span></label>
-            <textarea id="disclosure" rows="3"></textarea>
+            <textarea id="disclosure" rows="2" placeholder="비워 두면 안 넣어요. 예) 본 포스팅은 업체로부터 서비스를 무상으로 제공받아 작성한 후기입니다."></textarea>
             <div class="hint">공정위 기준: 제목이나 본문 첫 부분에 눈에 띄게 적어야 해요.</div>
             <label style="margin-top:16px">협찬 배너<span class="opt">체험단 업체 배너</span></label>
             <div class="banner-row">
@@ -431,18 +431,8 @@ function bindSeg(id, key, onChange) {
 bindSeg("kindSeg", "kind", updateDisclosure);
 bindSeg("toneSeg", "tone");
 
-function defaultDisclosure() {
-  const name = $("store_name").value.trim() || "업체";
-  const code = name.charCodeAt(name.length - 1) - 0xac00;
-  const jong = code >= 0 && code <= 11171 ? code % 28 : 0; // 받침 (ㄹ 받침=8 은 '로')
-  return `본 포스팅은 ${name}${jong && jong !== 8 ? "으로" : "로"}부터 서비스(제품)를 무상으로 제공받아 직접 이용해 보고 작성한 솔직한 후기입니다.`;
-}
-let discEdited = false;
-$("disclosure").addEventListener("input", () => (discEdited = true));
-$("store_name").addEventListener("input", () => { if (!discEdited) $("disclosure").value = defaultDisclosure(); });
 function updateDisclosure() {
   $("discField").style.display = state.kind === "sponsored" ? "" : "none";
-  if (!discEdited) $("disclosure").value = defaultDisclosure();
 }
 updateDisclosure();
 
@@ -859,37 +849,37 @@ function exportHtml({ plain = false } = {}) {
   const clone = $("doc").cloneNode(true);
   clone.querySelectorAll(".ph").forEach((ph) => {
     const p = document.createElement("p"); p.setAttribute("style", "text-align:center;");
-    p.innerHTML = `<b><span style="color:#e67700;">[📷 사진 ${String(ph.dataset.n).padStart(2, "0")}]</span></b>`;
+    p.innerHTML = `<b><span style="color:#000000;font-size:15px;">[📷 사진 ${String(ph.dataset.n).padStart(2, "0")}]</span></b>`;
     ph.replaceWith(p);
   });
   clone.querySelectorAll(".bn").forEach((bn) => {
     // 배너 이미지도 붙여넣기로는 안 들어가서 자리 표시 + (있으면) 링크
     const link = bn.dataset.link;
     const p = document.createElement("p"); p.setAttribute("style", "text-align:center;");
-    p.innerHTML = `<b><span style="color:#7c3aed;">[🏷 ${esc(bn.dataset.banner)} 배너]</span></b>` +
+    p.innerHTML = `<b><span style="color:#000000;font-size:15px;">[🏷 ${esc(bn.dataset.banner)} 배너]</span></b>` +
       (link ? (plain ? `<br>${esc(link)}` : `<br><a href="${esc(link)}">${esc(link)}</a>`) : "");
     bn.replaceWith(p);
   });
   clone.querySelectorAll("[data-map]").forEach((m) => {
     m.outerHTML = plain ? `📍 네이버 지도: ${m.getAttribute("href")}`
-      : `<b><a href="${esc(m.getAttribute("href"))}" style="color:#1d5bd8;">${m.innerHTML}</a></b>`;
+      : `<a href="${esc(m.getAttribute("href"))}"><span style="color:#000000;font-size:15px;font-weight:normal;">${m.innerHTML}</span></a>`;
   });
-  clone.querySelectorAll(".disc").forEach((d) => { d.setAttribute("style", "text-align:center;"); d.innerHTML = `<b><span style="color:#d6336c;">${d.innerHTML}</span></b>`; });
+  clone.querySelectorAll(".disc").forEach((d) => { d.setAttribute("style", "text-align:center;"); d.innerHTML = `<span style="color:#000000;font-size:15px;font-weight:normal;">${d.innerHTML}</span>`; });
   clone.querySelectorAll("h3").forEach((h) => {
     const p = document.createElement("p"); p.setAttribute("style", align);
-    p.innerHTML = `<b><span style="font-size:19px;">${h.innerHTML}</span></b>`; h.replaceWith(p);
+    p.innerHTML = `<b><span style="color:#000000;font-size:15px;">${h.innerHTML}</span></b>`; h.replaceWith(p);
   });
   clone.querySelectorAll("blockquote").forEach((q) => {
     const p = document.createElement("p"); p.setAttribute("style", align);
-    p.innerHTML = `<b><span style="color:#02a84b;font-size:15px;">“ ${q.innerHTML} ”</span></b>`; q.replaceWith(p);
+    p.innerHTML = `<span style="color:#000000;font-size:15px;font-weight:normal;">“ ${q.innerHTML} ”</span>`; q.replaceWith(p);
   });
-  clone.querySelectorAll(".capt").forEach((c) => { c.setAttribute("style", "text-align:center;"); c.innerHTML = `<span style="color:#868e96;font-size:13px;">${c.innerHTML}</span>`; });
+  clone.querySelectorAll(".capt").forEach((c) => { c.setAttribute("style", "text-align:center;"); c.innerHTML = `<span style="color:#000000;font-size:15px;font-weight:normal;">${c.innerHTML}</span>`; });
   clone.querySelectorAll("p").forEach((p) => {
     if (!p.getAttribute("style")) p.setAttribute("style", p.classList.contains("info") ? "" : align);
     p.removeAttribute("class");
     // 글자 모양을 직접 적어 둔다. 안 그러면 네이버 에디터가 바로 앞 소제목(굵게·19)을 이어 붙인다.
     if (p.textContent.trim() && !p.querySelector('span[style*="font-size"]'))
-      p.innerHTML = `<span style="font-size:15px;font-weight:normal;">${p.innerHTML}</span>`;
+      p.innerHTML = `<span style="color:#000000;font-size:15px;font-weight:normal;">${p.innerHTML}</span>`;
   });
   const parts = Array.from(clone.children).map((el) => el.outerHTML);
   return { html: parts.join("<p><br></p>"), text: parts.map(htmlToText).join("\n\n") };
@@ -1061,7 +1051,7 @@ const TUTORIAL = [
     <p style="font-size:14px;margin-top:10px">Claude 유료 키(<b>sk-ant-</b>…)가 있으면 <b>Claude · 유료</b>를 골라도 돼요. 글이 더 자연스러워요.</p>
     <div class="tip">키는 이 휴대폰에만 저장돼요. 무료 키는 하루 사용량 한도가 있어요.</div>` },
   { icon: "✍️", title: "칸 채우기", body: `<ol>
-      <li><b>체험단 · 협찬</b>인지 <b>내돈내산</b>인지 골라요. 협찬이면 광고 표시 문구가 글 맨 위에 들어가요.</li>
+      <li><b>체험단 · 협찬</b>인지 <b>내돈내산</b>인지 골라요. 협찬 표시 문구를 적으면 글 맨 위에 들어가요.</li>
       <li><b>가게 이름</b>과 <b>주소</b>를 적어요.</li>
       <li><b>사진</b>을 골라요. 사진을 누르면 순서 바꾸기 · 빼기를 할 수 있어요.</li>
       <li><b>가벼운 후기</b>는 생각나는 대로 짧게!</li></ol>
@@ -1110,7 +1100,6 @@ fillBannerSelect();
   if (last?.post && last?.form) {
     const f = last.form;
     ["store_name", "address", "memo", "required", "links", "keyword", "category", "disclosure", "min_chars", "kw_title", "kw_body", "banner"].forEach((k) => f[k] != null && ($(k).value = f[k]));
-    if (f.disclosure) discEdited = true;
     [["kindSeg", "kind"], ["toneSeg", "tone"]].forEach(([id, key]) => { const b = $(id).querySelector(`button[data-v="${f[key]}"]`); if (b) b.click(); });
     state.post = last.post; state.form = f; renderPost();
     $("lastBtn").classList.remove("hidden");
