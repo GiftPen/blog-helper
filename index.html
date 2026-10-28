@@ -78,11 +78,10 @@
   .photo-tools.show { display: flex; }
   .photo-tools button { flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 9px 4px; font-size: 13px; font-weight: 600; }
 
-  details.more summary { cursor: pointer; font-weight: 600; color: var(--sub); list-style: none; }
-  details.more summary::-webkit-details-marker { display: none; }
-  details.more summary::before { content: "＋ "; }
-  details.more[open] summary::before { content: "－ "; }
-  details.more .inner { margin-top: 14px; }
+  .card-title { font-weight: 700; color: var(--sub); font-size: 13px; margin-bottom: 14px; }
+  .counts { display: flex; gap: 10px; margin-top: 8px; }
+  .count-in { display: flex; align-items: center; gap: 6px; font-weight: 400 !important; color: var(--sub); margin: 0 !important; white-space: nowrap; }
+  .count-in input { width: 64px; padding: 9px 8px; text-align: center; }
 
   .bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 10px 14px calc(10px + var(--safe-b));
     background: linear-gradient(transparent, var(--bg) 30%); }
@@ -120,7 +119,27 @@
   .doc .ph .lbl { display: inline-block; background: #fff4d6; color: #a15c00; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 6px; }
   .doc .capt { color: var(--sub); font-size: 14px; }
   .doc .map { color: #1d5bd8; font-weight: 700; }
+  .banner-row { display: flex; gap: 8px; }
+  .banner-row select { flex: 1; }
+  .banner-row .btn { flex: none; padding: 12px 14px; }
+  .bitem { padding: 14px 0; border-top: 1px solid var(--line); }
+  .bitem .bname { font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .bitem .bname button { border: 0; background: none; color: var(--sub); font-size: 13px; }
+  .bitem .bimg { height: 72px; border-radius: 10px; background: var(--bg); display: grid; place-items: center; overflow: hidden; color: var(--sub); font-size: 13px; border: 1px dashed var(--line); margin-bottom: 8px; }
+  .bitem .bimg img { max-width: 100%; max-height: 100%; }
+  .bitem .bopts { display: flex; gap: 6px; }
+  .bitem .bopts input { flex: 1; min-width: 0; }
+  .bitem .bopts select { width: 100px; flex: none; }
+  .banner-add { display: flex; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .banner-add .btn { flex: none; }
+  .doc .bn { margin: 12px 0; text-align: center; }
+  .doc .bn img { max-width: 100%; max-height: 160px; display: block; margin: 0 auto 6px; border-radius: 4px; }
+  .doc .bn .lbl { display: inline-block; background: #f3e8ff; color: #7c3aed; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 6px; }
+  .order .o.b span { background: #f3e8ff; color: #7c3aed; }
   .count { display: inline-block; font-size: 13px; font-weight: 700; border-radius: 8px; padding: 5px 10px; margin-bottom: 12px; background: var(--green-soft); color: var(--green-dark); }
+  .title-opt .kw { font-size: 11px; white-space: nowrap; }
+  .title-opt .kw.ok { color: var(--green-dark); }
+  .title-opt .kw.no { color: #a15c00; }
   .count.short { background: #fff4d6; color: #a15c00; }
   .tags { display: flex; flex-wrap: wrap; gap: 6px; }
   .tag { background: var(--bg); border-radius: 20px; padding: 5px 10px; font-size: 13px; color: var(--sub); }
@@ -209,13 +228,18 @@
     </div>
 
     <div class="card">
-      <details class="more">
-        <summary>더 넣기 (필수 내용 · 링크 · 키워드 · 글자 수 · 말투)</summary>
-        <div class="inner">
+      <div class="card-title">체험단 가이드 · 글 설정</div>
+      <div>
           <div class="field" id="discField">
             <label>협찬 표시 문구<span class="opt">글 맨 위에 들어가요</span></label>
             <textarea id="disclosure" rows="3"></textarea>
             <div class="hint">공정위 기준: 제목이나 본문 첫 부분에 눈에 띄게 적어야 해요.</div>
+            <label style="margin-top:16px">협찬 배너<span class="opt">체험단 업체 배너</span></label>
+            <div class="banner-row">
+              <select id="banner"><option value="">배너 없음</option></select>
+              <button type="button" class="btn" id="bannerManageBtn">관리</button>
+            </div>
+            <div class="hint" id="bannerHint"></div>
           </div>
           <div class="field">
             <label>필수로 넣을 내용<span class="opt">체험단 가이드 등</span></label>
@@ -226,8 +250,13 @@
             <textarea id="links" rows="2" placeholder="예) https://naver.me/xxxx (예약 링크)"></textarea>
           </div>
           <div class="field">
-            <label>대표 키워드</label>
+            <label>지정 키워드<span class="opt">가이드에서 정해 준 검색어</span></label>
             <input id="keyword" placeholder="예) 성수 파스타 맛집">
+            <div class="counts">
+              <label class="count-in">제목에 <input id="kw_title" type="number" inputmode="numeric" min="0" max="3" value="1"> 회</label>
+              <label class="count-in">본문에 <input id="kw_body" type="number" inputmode="numeric" min="0" max="20" value="3"> 회 이상</label>
+            </div>
+            <div class="hint">키워드를 띄어쓰기까지 똑같이 넣어요. 제목 0회면 제목에는 넣지 않아요.</div>
           </div>
           <div class="field">
             <label>분야</label>
@@ -249,8 +278,7 @@
               <button data-v="casual">일기체</button>
             </div>
           </div>
-        </div>
-      </details>
+      </div>
     </div>
   </div>
   <div class="bottom"><div class="in">
@@ -288,7 +316,7 @@
       <div id="titles"></div>
     </div>
     <div class="card">
-      <div class="cap">사진 넣는 순서 · 본문의 📷 번호와 같아요</div>
+      <div class="cap">사진 넣는 순서 · 본문의 📷 번호와 같아요 (배너는 눌러서 저장)</div>
       <div class="order" id="order"></div>
     </div>
     <div class="card">
@@ -296,7 +324,7 @@
         <div class="cap" style="margin:0">✏️ 눌러서 바로 고칠 수 있어요</div>
         <label class="toggle"><input type="checkbox" id="centerChk" checked> 가운데 정렬</label>
       </div>
-      <div class="count" id="charCount"></div>
+      <div><span class="count" id="charCount"></span> <span class="count" id="kwCount"></span></div>
       <div class="doc center" id="doc" contenteditable="true" spellcheck="false"></div>
     </div>
     <div class="card">
@@ -306,14 +334,41 @@
   </div>
 </div>
 
+<!-- ===== 배너 관리 ===== -->
+<div class="sheet-bg" id="bannerSheet">
+  <div class="sheet">
+    <h2>협찬 배너 관리</h2>
+    <p>업체마다 받은 배너 이미지를 한 번 등록해 두면, 글을 만들 때 고르기만 하면 돼요. 이 휴대폰에만 저장돼요.</p>
+    <div id="bannerList"></div>
+    <div class="banner-add">
+      <input id="newBannerName" placeholder="업체 추가 (예: 레뷰)">
+      <button class="btn" id="addBannerBtn">추가</button>
+    </div>
+    <div class="err" id="bannerErr" style="margin-top:8px"></div>
+    <input type="file" id="bannerFile" accept="image/*" hidden>
+    <div class="btns"><button class="btn primary" id="closeBanner">닫기</button></div>
+  </div>
+</div>
+<div class="sheet-bg" id="bannerView">
+  <div class="sheet" style="text-align:center">
+    <h2 id="bannerViewTitle">배너</h2>
+    <p>이미지를 <b>길게 눌러 저장</b>한 뒤, 블로그 앱에서 🏷 배너 자리에 넣어 주세요.</p>
+    <img id="bannerViewImg" style="max-width:100%;border-radius:6px">
+    <div class="btns"><button class="btn primary" id="closeBannerView">닫기</button></div>
+  </div>
+</div>
+
 <!-- ===== 설정 ===== -->
 <div class="sheet-bg" id="settingsSheet">
   <div class="sheet">
-    <h2>AI 키 설정</h2>
-    <p>Gemini 무료 키를 넣어 주세요. 키는 이 휴대폰에만 저장돼요.<br>
-      키 발급: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></p>
-    <p style="font-size:13px">무료 키는 하루 사용량 한도가 있고, 보낸 사진·메모가 Google 서비스 개선에 쓰일 수 있어요.</p>
-    <input id="apiKey" type="password" autocomplete="off" placeholder="AQ.... 또는 AIza...">
+    <h2>AI 설정</h2>
+    <p style="margin-bottom:10px">글을 써 줄 AI 를 고르고 키를 넣어 주세요. 키는 이 휴대폰에만 저장돼요.</p>
+    <div class="seg" id="providerSeg" style="margin-bottom:12px">
+      <button data-v="gemini" class="on">Gemini · 무료</button>
+      <button data-v="claude">Claude · 유료</button>
+    </div>
+    <p id="providerNote"></p>
+    <input id="apiKey" type="password" autocomplete="off">
     <div class="err" id="keyErr" style="margin-top:8px"></div>
     <div class="btns">
       <button class="btn" id="closeSettings">닫기</button>
@@ -339,7 +394,7 @@
 
 <script>
 /* PC 프로그램의 prompt.py 에서 빌드할 때 넣는 값: SYSTEM_PROMPT, OUTPUT_SCHEMA, TONES, KINDS */
-const PROMPT = {"SYSTEM_PROMPT": "너는 네이버 블로그에 방문 후기를 쓰는 한국인 블로거를 돕는 작가야.\n사용자가 준 사진, 가게 정보, 짧은 메모를 바탕으로 '직접 다녀온 사람이 쓴' 자연스러운 후기 글을 쓴다.\n\n[요즘 네이버 블로그에서 잘 읽히는 글]\n- 직접 경험이 먼저다. 1인칭으로, 언제·누구와·왜 갔는지 같은 상황에서 시작해 실제로 보고 먹고 느낀 순서대로 쓴다.\n- 후기와 함께 검색한 사람이 바로 쓸 수 있는 정보(위치·찾아가는 법·주차·추천 메뉴·이런 분께 추천)를 담는다.\n- 한 문단은 1~3문장으로 짧게. 모바일에서 읽기 편하도록 줄을 자주 바꾼다.\n- 소제목으로 흐름을 나눈다 (예: 첫인상/분위기 → 메뉴 → 맛·사용감 → 아쉬운 점 → 정리).\n- 사진 바로 아래에는 그 사진에 대한 이야기를 쓴다. 사진 설명을 반복하지 말고 느낌·디테일을 덧붙인다.\n- 대표 키워드가 있으면 제목에 넣고, 본문에는 3~5번만 자연스럽게 쓴다. 억지로 반복하지 않는다.\n- 이모지는 소제목이나 강조에만 가끔 쓴다. 과장된 광고 문구(\"인생 맛집\", \"무조건\", \"최고\")는 피한다.\n- 칭찬만 하지 말고 작은 아쉬운 점이나 팁 하나를 솔직하게 넣으면 신뢰도가 올라간다 (메모에 없으면 '이런 점은 참고하세요' 정도의 팁으로).\n- 본문 분량은 사용자가 정한 최소 글자 수를 반드시 넘긴다. 모자라면 경험 묘사·팁·추천 대상을 더 풀어 쓰고, 같은 말을 반복해 늘리지 않는다.\n\n[절대 지킬 것]\n- 메모·필수 내용·사진에서 확인되지 않는 사실(가격, 영업시간, 메뉴 이름, 주차 여부, 직원 응대 등)을 지어내지 않는다. 모르면 쓰지 않는다.\n- 사진에서 보이는 것은 '보이는 대로'만 묘사한다. 맛·향처럼 사진으로 알 수 없는 건 메모에 있을 때만 쓴다.\n- '필수로 넣을 내용'은 빠짐없이, 뜻을 바꾸지 말고 본문에 자연스럽게 녹인다. 링크는 원문 그대로 쓴다.\n- 광고·협찬 표시 문구는 프로그램이 글 맨 위에 따로 붙이므로 본문에 쓰지 않는다.\n- 모든 사진을 한 번씩 글에 배치한다. 사진 번호는 사용자가 붙인 [사진 N] 번호를 그대로 쓴다. 이야기 흐름에 맞게 순서는 바꿔도 된다.\n\n[결과 형식]\n- titles: 제목 후보 3개. 30자 안팎, 지역명/가게명/키워드를 앞쪽에. 낚시성 제목 금지.\n- blocks: 글을 위에서부터 순서대로 나눈 조각.\n  - heading: 소제목 (text 에 내용, photo 는 0)\n  - text: 본문 문단 (줄바꿈은 \\n 으로, photo 는 0). 강조할 짧은 구절은 **굵게** 표시해도 된다.\n  - photo: 사진 자리 (photo 에 사진 번호, text 에는 사진 아래 붙일 짧은 설명 한 줄 또는 빈 문자열)\n  - quote: 한 줄 요약이나 핵심 팁 (photo 는 0)\n  - info: 맨 끝에 넣는 '가게 정보' 정리. text 에 \"상호: …\\n주소: …\" 처럼 아는 정보만 줄마다 적는다 (photo 는 0)\n- tags: 네이버 태그용 해시태그 10~15개. '#' 없이 단어만, 띄어쓰기 없이.\n", "OUTPUT_SCHEMA": {"type": "object", "properties": {"titles": {"type": "array", "items": {"type": "string"}}, "blocks": {"type": "array", "items": {"type": "object", "properties": {"type": {"type": "string", "enum": ["heading", "text", "photo", "quote", "info"]}, "text": {"type": "string"}, "photo": {"type": "integer"}}, "required": ["type", "text", "photo"], "additionalProperties": false}}, "tags": {"type": "array", "items": {"type": "string"}}}, "required": ["titles", "blocks", "tags"], "additionalProperties": false}, "TONES": {"friendly": "친구에게 말하듯 편안한 말투 (~했어요, ~더라고요). 살짝 수다스럽게.", "neat": "깔끔하고 단정한 존댓말 (~습니다/~요 섞어서). 정보 위주로 담백하게.", "casual": "혼잣말 같은 반말 일기체 (~했다, ~였음). 가볍고 솔직하게."}, "KINDS": {"sponsored": "체험단/협찬으로 제공받아 방문한 후기", "own": "내 돈 내고 직접 이용한 후기 (내돈내산)"}, "LENGTH_RULE": "- 본문 분량: 공백 포함 최소 {min}자 이상 (소제목·사진 설명·가게 정보를 뺀 본문 문단만 세어서). 모자라지 않게 {target}자 정도로 넉넉히 쓴다.", "DEFAULT_MIN_CHARS": 1000, "MIN_CHARS_RANGE": [300, 5000]};
+const PROMPT = {"SYSTEM_PROMPT": "너는 네이버 블로그에 방문 후기를 쓰는 한국인 블로거를 돕는 작가야.\n사용자가 준 사진, 가게 정보, 짧은 메모를 바탕으로 '직접 다녀온 사람이 쓴' 자연스러운 후기 글을 쓴다.\n\n[요즘 네이버 블로그에서 잘 읽히는 글]\n- 직접 경험이 먼저다. 1인칭으로, 언제·누구와·왜 갔는지 같은 상황에서 시작해 실제로 보고 먹고 느낀 순서대로 쓴다.\n- 후기와 함께 검색한 사람이 바로 쓸 수 있는 정보(위치·찾아가는 법·주차·추천 메뉴·이런 분께 추천)를 담는다.\n- 한 문단은 1~3문장으로 짧게. 모바일에서 읽기 편하도록 줄을 자주 바꾼다.\n- 소제목으로 흐름을 나눈다 (예: 첫인상/분위기 → 메뉴 → 맛·사용감 → 아쉬운 점 → 정리).\n- 사진 바로 아래에는 그 사진에 대한 이야기를 쓴다. 사진 설명을 반복하지 말고 느낌·디테일을 덧붙인다.\n- 지정 키워드가 있으면 사용자가 정한 횟수(키워드 조건)를 반드시 지킨다. 띄어쓰기까지 글자 그대로 쓰고, 한곳에 몰지 말고 문장 속에 자연스럽게 녹인다.\n- 이모지는 소제목이나 강조에만 가끔 쓴다. 과장된 광고 문구(\"인생 맛집\", \"무조건\", \"최고\")는 피한다.\n- 칭찬만 하지 말고 작은 아쉬운 점이나 팁 하나를 솔직하게 넣으면 신뢰도가 올라간다 (메모에 없으면 '이런 점은 참고하세요' 정도의 팁으로).\n- 본문 분량은 사용자가 정한 최소 글자 수를 반드시 넘긴다. 모자라면 경험 묘사·팁·추천 대상을 더 풀어 쓰고, 같은 말을 반복해 늘리지 않는다.\n\n[절대 지킬 것]\n- 메모·필수 내용·사진에서 확인되지 않는 사실(가격, 영업시간, 메뉴 이름, 주차 여부, 직원 응대 등)을 지어내지 않는다. 모르면 쓰지 않는다.\n- 사진에서 보이는 것은 '보이는 대로'만 묘사한다. 맛·향처럼 사진으로 알 수 없는 건 메모에 있을 때만 쓴다.\n- '필수로 넣을 내용'은 빠짐없이, 뜻을 바꾸지 말고 본문에 자연스럽게 녹인다. 링크는 원문 그대로 쓴다.\n- 광고·협찬 표시 문구는 프로그램이 글 맨 위에 따로 붙이므로 본문에 쓰지 않는다.\n- 모든 사진을 한 번씩 글에 배치한다. 사진 번호는 사용자가 붙인 [사진 N] 번호를 그대로 쓴다. 이야기 흐름에 맞게 순서는 바꿔도 된다.\n\n[결과 형식]\n- titles: 제목 후보 3개. 30자 안팎, 지역명/가게명/키워드를 앞쪽에. 낚시성 제목 금지. 키워드 조건이 있으면 3개 모두 지킨다.\n- blocks: 글을 위에서부터 순서대로 나눈 조각.\n  - heading: 소제목 (text 에 내용, photo 는 0)\n  - text: 본문 문단 (줄바꿈은 \\n 으로, photo 는 0). 강조할 짧은 구절은 **굵게** 표시해도 된다.\n  - photo: 사진 자리 (photo 에 사진 번호, text 에는 사진 아래 붙일 짧은 설명 한 줄 또는 빈 문자열)\n  - quote: 한 줄 요약이나 핵심 팁 (photo 는 0)\n  - info: 맨 끝에 넣는 '가게 정보' 정리. text 에 \"상호: …\\n주소: …\" 처럼 아는 정보만 줄마다 적는다 (photo 는 0)\n- tags: 네이버 태그용 해시태그 10~15개. '#' 없이 단어만, 띄어쓰기 없이.\n", "OUTPUT_SCHEMA": {"type": "object", "properties": {"titles": {"type": "array", "items": {"type": "string"}}, "blocks": {"type": "array", "items": {"type": "object", "properties": {"type": {"type": "string", "enum": ["heading", "text", "photo", "quote", "info"]}, "text": {"type": "string"}, "photo": {"type": "integer"}}, "required": ["type", "text", "photo"], "additionalProperties": false}}, "tags": {"type": "array", "items": {"type": "string"}}}, "required": ["titles", "blocks", "tags"], "additionalProperties": false}, "TONES": {"friendly": "친구에게 말하듯 편안한 말투 (~했어요, ~더라고요). 살짝 수다스럽게.", "neat": "깔끔하고 단정한 존댓말 (~습니다/~요 섞어서). 정보 위주로 담백하게.", "casual": "혼잣말 같은 반말 일기체 (~했다, ~였음). 가볍고 솔직하게."}, "KINDS": {"sponsored": "체험단/협찬으로 제공받아 방문한 후기", "own": "내 돈 내고 직접 이용한 후기 (내돈내산)"}, "LENGTH_RULE": "- 본문 분량: 공백 포함 최소 {min}자 이상 (소제목·사진 설명·가게 정보를 뺀 본문 문단만 세어서). 모자라지 않게 {target}자 정도로 넉넉히 쓴다.", "DEFAULT_MIN_CHARS": 1000, "MIN_CHARS_RANGE": [300, 5000], "KW_TITLE_RULE": "- 키워드 조건(제목): 제목 후보마다 '{kw}' 키워드를 띄어쓰기까지 그대로 {n}회 넣는다.", "KW_TITLE_NONE": "- 키워드 조건(제목): 제목에는 '{kw}' 키워드를 넣지 않아도 된다.", "KW_BODY_RULE": "- 키워드 조건(본문): 본문(소제목·문단·사진 설명·요약)에 '{kw}' 키워드를 띄어쓰기까지 그대로 최소 {n}회 넣는다. 모자라지 않게 {more}회 정도로, 글 전체에 고르게 나눠 쓴다.", "DEFAULT_KW_TITLE": 1, "DEFAULT_KW_BODY": 3};
 
 const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"];
 const $ = (id) => document.getElementById(id);
@@ -452,24 +507,54 @@ $("rmPhoto").addEventListener("click", () => {
 renderThumbs();
 
 /* ---------- 설정 ---------- */
-function refreshKeyState() {
-  $("keyState").innerHTML = store.get("gemini_key") ? "" : ' <span class="warn">· 키 필요</span>';
+const PROVIDERS = {
+  gemini: {
+    name: "Gemini", storeKey: "gemini_key", prefixes: ["AQ.", "AIza"], placeholder: "AQ.... 또는 AIza...",
+    note: '무료로 쓸 수 있어요. 키 발급: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a><br>' +
+      '<span style="font-size:13px">무료 키는 하루 사용량 한도가 있고, 보낸 사진·메모가 Google 서비스 개선에 쓰일 수 있어요.</span>',
+  },
+  claude: {
+    name: "Claude", storeKey: "claude_key", prefixes: ["sk-ant-"], placeholder: "sk-ant-...",
+    note: '글이 더 자연스럽고, 글 1개에 대략 100~300원이 들어요. 키 발급: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>',
+  },
+};
+function currentProvider() {
+  const p = store.get("provider");
+  return PROVIDERS[p] ? p : "gemini";
 }
+function currentKey() {
+  return store.get(PROVIDERS[currentProvider()].storeKey);
+}
+function refreshKeyState() {
+  $("keyState").innerHTML = currentKey() ? ` · ${PROVIDERS[currentProvider()].name}` : ' <span class="warn">· 키 필요</span>';
+}
+let settingsProvider = "gemini";
+function showProvider(p) {
+  settingsProvider = p;
+  $("providerSeg").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.v === p));
+  $("providerNote").innerHTML = PROVIDERS[p].note;
+  const k = store.get(PROVIDERS[p].storeKey);
+  $("apiKey").value = "";
+  $("apiKey").placeholder = k ? `저장됨: ${k.slice(0, 8)}…${k.slice(-4)} (바꿀 때만 입력)` : PROVIDERS[p].placeholder;
+  $("keyErr").textContent = "";
+}
+$("providerSeg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => showProvider(b.dataset.v)));
 function openSettings() {
-  const k = store.get("gemini_key");
-  $("apiKey").value = ""; $("apiKey").placeholder = k ? `저장됨: ${k.slice(0, 8)}…${k.slice(-4)} (바꿀 때만 입력)` : "AQ.... 또는 AIza...";
-  $("keyErr").textContent = ""; $("settingsSheet").classList.add("show");
+  showProvider(currentProvider());
+  $("settingsSheet").classList.add("show");
 }
 $("settingsBtn").addEventListener("click", openSettings);
 $("closeSettings").addEventListener("click", () => $("settingsSheet").classList.remove("show"));
 $("saveKey").addEventListener("click", () => {
-  const key = $("apiKey").value.trim();
-  if (!key) {
-    if (store.get("gemini_key")) { $("settingsSheet").classList.remove("show"); return; }
+  const P = PROVIDERS[settingsProvider], key = $("apiKey").value.trim();
+  if (key) {
+    if (!P.prefixes.some((x) => key.startsWith(x))) { $("keyErr").textContent = `이 키는 ${P.prefixes.join(" 또는 ")} 로 시작해야 해요. 다시 확인해 주세요.`; return; }
+    store.set(P.storeKey, key);
+  } else if (!store.get(P.storeKey)) {
     $("keyErr").textContent = "API 키를 넣어 주세요."; return;
   }
-  if (!key.startsWith("AQ.") && !key.startsWith("AIza")) { $("keyErr").textContent = "이 키는 AQ. 또는 AIza 로 시작해야 해요. 다시 확인해 주세요."; return; }
-  store.set("gemini_key", key); $("settingsSheet").classList.remove("show"); refreshKeyState(); toast("키를 저장했어요");
+  store.set("provider", settingsProvider);
+  $("settingsSheet").classList.remove("show"); refreshKeyState(); toast(`${P.name} 로 글을 쓸게요`);
 });
 
 /* ---------- 글 만들기 (Gemini) ---------- */
@@ -483,6 +568,21 @@ function lengthRule(n) {
   const target = Math.round((n * 1.3) / 100) * 100;
   return PROMPT.LENGTH_RULE.replace("{min}", n.toLocaleString("en-US")).replace("{target}", target.toLocaleString("en-US"));
 }
+function countOf(text, kw) {
+  return kw ? text.split(kw).length - 1 : 0;
+}
+function kwGoal(form) {
+  const num = (v, d, hi) => { const n = parseInt(String(v ?? "").trim(), 10); return Math.max(0, Math.min(hi, Number.isNaN(n) ? d : n)); };
+  return { kw: (form.keyword || "").trim(), title: num(form.kw_title, PROMPT.DEFAULT_KW_TITLE, 3), body: num(form.kw_body, PROMPT.DEFAULT_KW_BODY, 20) };
+}
+function keywordRules(form) {
+  const { kw, title, body } = kwGoal(form);
+  if (!kw) return [];
+  const fill = (tpl, n, more) => tpl.replace("{kw}", kw).replace("{n}", n).replace("{more}", more);
+  const rules = [title ? fill(PROMPT.KW_TITLE_RULE, title) : fill(PROMPT.KW_TITLE_NONE)];
+  if (body) rules.push(fill(PROMPT.KW_BODY_RULE, body, body + 1));
+  return rules;
+}
 function buildUserText(form, photoCount) {
   const v = (k) => (form[k] || "").trim();
   const lines = [`위 사진 ${photoCount}장은 이번 방문에서 찍은 사진이야. 아래 정보로 블로그 글을 써 줘.`, ""];
@@ -490,9 +590,10 @@ function buildUserText(form, photoCount) {
   lines.push(`- 분야: ${v("category") || "맛집"}`);
   lines.push(`- 가게/상품 이름: ${v("store_name")}`);
   if (v("address")) lines.push(`- 주소: ${v("address")}`);
-  if (v("keyword")) lines.push(`- 대표 키워드(검색어): ${v("keyword")}`);
+  if (v("keyword")) lines.push(`- 지정 키워드(검색어): ${v("keyword")}`);
   lines.push(`- 말투: ${PROMPT.TONES[form.tone] || PROMPT.TONES.friendly}`);
   lines.push(lengthRule(minChars(form)));
+  lines.push(...keywordRules(form));
   lines.push("", "[내 메모 / 가벼운 후기]", v("memo") || "(메모 없음 - 사진에서 보이는 것 위주로 담백하게)");
   if (v("required")) lines.push("", "[필수로 넣을 내용 - 빠짐없이 반영]", v("required"));
   if (v("links")) lines.push("", "[글에 넣을 링크 - 원문 그대로]", v("links"));
@@ -520,7 +621,7 @@ async function callGemini(key, model, body) {
   return { status: res.status, json };
 }
 
-async function writePost(key, form, photos) {
+async function writeWithGemini(key, form, photos) {
   const parts = [];
   photos.forEach((p, i) => {
     parts.push({ text: `[사진 ${i + 1}]` });
@@ -565,17 +666,78 @@ async function writePost(key, form, photos) {
   return { error };
 }
 
+// Claude: 공식 SDK 를 CDN 에서 (Claude 를 고른 경우에만) 불러온다
+const ANTHROPIC_SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.133.0/+esm";
+const CLAUDE_MODEL = "claude-opus-5-5";
+
+async function writeWithClaude(key, form, photos) {
+  let sdk;
+  try { sdk = await import(ANTHROPIC_SDK_URL); }
+  catch { return { error: "Claude 연결 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요." }; }
+  const Anthropic = sdk.default || sdk.Anthropic;
+  // 키는 이 휴대폰에만 있고 브라우저에서 바로 보낸다
+  const client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true, timeout: 180000, maxRetries: 2 });
+
+  const content = [];
+  photos.forEach((p, i) => {
+    content.push({ type: "text", text: `[사진 ${i + 1}]` });
+    content.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: p.data.split(",")[1] } });
+  });
+  content.push({ type: "text", text: buildUserText(form, photos.length) });
+
+  let response;
+  try {
+    response = await client.beta.messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 16000,
+      system: PROMPT.SYSTEM_PROMPT,
+      messages: [{ role: "user", content }],
+      thinking: { type: "adaptive" },
+      output_config: { effort: "medium", format: { type: "json_schema", schema: PROMPT.OUTPUT_SCHEMA } },
+      betas: ["server-side-fallback-2026-07-01"],
+      fallbacks: "default",
+    });
+  } catch (e) {
+    if (e instanceof sdk.AuthenticationError) return { error: "Claude API 키가 맞지 않아요. ⚙ 설정에서 다시 넣어 주세요." };
+    if (e instanceof sdk.PermissionDeniedError) return { error: "이 API 키로는 사용할 수 없어요. 키 권한을 확인해 주세요." };
+    if (e instanceof sdk.RateLimitError) return { error: "요청이 너무 많아요. 1분 뒤에 다시 눌러 주세요." };
+    if (e instanceof sdk.BadRequestError) {
+      const m = String(e.message || "");
+      if (/credit|billing/i.test(m)) return { error: "API 크레딧(잔액)이 부족해요. Anthropic 콘솔에서 충전해 주세요." };
+      return { error: `요청 오류: ${m}` };
+    }
+    if (e instanceof sdk.APIConnectionTimeoutError) return { error: "Claude 가 너무 오래 답하지 않아요. 잠시 뒤 다시 눌러 주세요." };
+    if (e instanceof sdk.APIConnectionError) return { error: "인터넷 연결을 확인해 주세요." };
+    if (e instanceof sdk.APIError) return { error: `서버 오류(${e.status})예요. 잠시 뒤 다시 시도해 주세요.` };
+    return { error: "글을 만들지 못했어요. 잠시 뒤 다시 눌러 주세요." };
+  }
+  if (response.stop_reason === "refusal") return { error: "이 내용으로는 글을 만들 수 없었어요. 메모를 조금 바꿔서 다시 시도해 주세요." };
+  if (response.stop_reason === "max_tokens") return { error: "글이 너무 길어져서 중간에 끊겼어요. 다시 한 번 눌러 주세요." };
+  const text = (response.content.find((b) => b.type === "text") || {}).text || "";
+  try {
+    const post = JSON.parse(text);
+    if (!post.blocks?.length) throw 0;
+    post.titles ||= []; post.tags ||= [];
+    return { post };
+  } catch { return { error: "결과를 읽지 못했어요. 다시 한 번 눌러 주세요." }; }
+}
+
+function writePost(key, form, photos) {
+  return currentProvider() === "claude" ? writeWithClaude(key, form, photos) : writeWithGemini(key, form, photos);
+}
+
 function collectForm() {
   return {
     kind: state.kind, tone: state.tone,
     store_name: $("store_name").value, address: $("address").value, memo: $("memo").value,
     required: $("required").value, links: $("links").value, keyword: $("keyword").value,
-    category: $("category").value, disclosure: $("disclosure").value, min_chars: $("min_chars").value,
+    category: $("category").value, disclosure: $("disclosure").value, min_chars: $("min_chars").value, banner: $("banner").value,
+    kw_title: $("kw_title").value, kw_body: $("kw_body").value,
   };
 }
 async function generate() {
   $("err").textContent = "";
-  const key = store.get("gemini_key");
+  const key = currentKey();
   const form = collectForm();
   if (!key) { openSettings(); return; }
   if (!form.store_name.trim()) return ($("err").textContent = "가게(상품) 이름을 적어 주세요.");
@@ -605,6 +767,11 @@ $("backBtn").addEventListener("click", () => { $("lastBtn").classList.toggle("hi
 $("lastBtn").addEventListener("click", () => showView("resultView"));
 
 /* ---------- 결과 ---------- */
+function titleCheck(t) {
+  const { kw, title } = kwGoal(state.form || {});
+  if (!kw || !title) return "";
+  return countOf(t, kw) >= title ? ' <b class="kw ok">키워드 ✓</b>' : ' <b class="kw no">키워드 없음</b>';
+}
 function mapUrl(form) {
   const region = form.address.trim().split(/\s+/).slice(0, 2).join(" ");
   return "https://map.naver.com/p/search/" + encodeURIComponent(`${region} ${form.store_name.trim()}`.trim());
@@ -619,13 +786,22 @@ function renderPost() {
   const photos = state.usedPhotos || [];
   const order = photoOrder();
   $("titles").innerHTML = post.titles.map((t) =>
-    `<div class="title-opt" data-t="${esc(t)}"><span>${esc(t)}</span><span class="c">복사</span></div>`).join("");
-  $("order").innerHTML = order.length && photos.length
+    `<div class="title-opt" data-t="${esc(t)}"><span>${esc(t)}${titleCheck(t)}</span><span class="c">복사</span></div>`).join("");
+  const banner = form.kind === "sponsored" ? loadBanners().find((b) => b.id === form.banner) : null;
+  const bannerOrder = banner && banner.image
+    ? `<div class="o b" data-banner="${banner.id}"><img src="${banner.image}"><span>배너</span></div>` : "";
+  const photoItems = order.length && photos.length
     ? order.map((p, i) => photos[p - 1] ? `<div class="o"><img src="${photos[p - 1].thumb}"><span>${String(i + 1).padStart(2, "0")}</span></div>` : "").join("")
-    : '<div class="cap" style="margin:0">사진 미리보기는 글을 새로 만들면 보여요.</div>';
+    : "";
+  $("order").innerHTML = (banner?.position !== "bottom" ? bannerOrder : "") + photoItems + (banner?.position === "bottom" ? bannerOrder : "") ||
+    '<div class="cap" style="margin:0">사진 미리보기는 글을 새로 만들면 보여요.</div>';
 
   let html = "";
   if (form.kind === "sponsored" && form.disclosure.trim()) html += `<p class="disc">${esc(form.disclosure.trim())}</p>`;
+  const bannerHtml = banner
+    ? `<div class="bn" data-banner="${esc(banner.name)}" data-link="${esc(banner.link || "")}" contenteditable="false">${banner.image ? `<img src="${banner.image}">` : ""}<span class="lbl">🏷 ${esc(banner.name)} 배너</span></div>`
+    : "";
+  if (banner && banner.position !== "bottom") html += bannerHtml;
   for (const b of post.blocks) {
     if (b.type === "heading") html += `<h3>${inline(b.text)}</h3>`;
     else if (b.type === "quote") html += `<blockquote>${inline(b.text)}</blockquote>`;
@@ -642,22 +818,32 @@ function renderPost() {
       b.text.split(/\n{2,}/).forEach((para) => (html += `<p>${para.split("\n").map(inline).join("<br>")}</p>`));
     }
   }
+  if (banner && banner.position === "bottom") html += bannerHtml;
   $("doc").innerHTML = html;
   updateCount();
   $("tags").innerHTML = post.tags.map((t) => `<span class="tag">#${esc(t.replace(/^#/, ""))}</span>`).join("");
 }
 $("centerChk").addEventListener("change", (e) => $("doc").classList.toggle("center", e.target.checked));
 
-function bodyChars() {
-  // 공백 포함 글자 수. 사진 자리·지도 링크·협찬 문구는 빼고 센다.
+function bodyTexts() {
+  // 사진 자리·지도 링크·협찬 문구를 뺀 본문 조각들
   const clone = $("doc").cloneNode(true);
-  clone.querySelectorAll(".ph, [data-map], .disc").forEach((el) => el.remove());
-  return Array.from(clone.children).reduce((n, el) => n + el.textContent.length, 0);
+  clone.querySelectorAll(".ph, .bn, [data-map], .disc").forEach((el) => el.remove());
+  return Array.from(clone.children).map((el) => el.textContent);
 }
 function updateCount() {
-  const n = bodyChars(), goal = minChars(state.form || {}), el = $("charCount");
+  const texts = bodyTexts();
+  const n = texts.reduce((a, t) => a + t.length, 0), goal = minChars(state.form || {}), el = $("charCount");
   el.textContent = n >= goal ? `${n.toLocaleString()}자 ✓ (목표 ${goal.toLocaleString()}자)` : `${n.toLocaleString()}자 · 목표 ${goal.toLocaleString()}자보다 짧아요`;
   el.classList.toggle("short", n < goal);
+
+  const { kw, body } = kwGoal(state.form || {}), kel = $("kwCount");
+  kel.style.display = kw && body ? "" : "none";
+  if (kw && body) {
+    const k = texts.reduce((a, t) => a + countOf(t, kw), 0);
+    kel.textContent = k >= body ? `키워드 본문 ${k}회 ✓` : `키워드 본문 ${k}회 · ${body}회보다 적어요`;
+    kel.classList.toggle("short", k < body);
+  }
 }
 $("doc").addEventListener("input", updateCount);
 $("doc").addEventListener("click", (e) => { if (e.target.closest("a")) e.preventDefault(); });
@@ -676,6 +862,14 @@ function exportHtml({ plain = false } = {}) {
     p.innerHTML = `<b><span style="color:#e67700;">[📷 사진 ${String(ph.dataset.n).padStart(2, "0")}]</span></b>`;
     ph.replaceWith(p);
   });
+  clone.querySelectorAll(".bn").forEach((bn) => {
+    // 배너 이미지도 붙여넣기로는 안 들어가서 자리 표시 + (있으면) 링크
+    const link = bn.dataset.link;
+    const p = document.createElement("p"); p.setAttribute("style", "text-align:center;");
+    p.innerHTML = `<b><span style="color:#7c3aed;">[🏷 ${esc(bn.dataset.banner)} 배너]</span></b>` +
+      (link ? (plain ? `<br>${esc(link)}` : `<br><a href="${esc(link)}">${esc(link)}</a>`) : "");
+    bn.replaceWith(p);
+  });
   clone.querySelectorAll("[data-map]").forEach((m) => {
     m.outerHTML = plain ? `📍 네이버 지도: ${m.getAttribute("href")}`
       : `<b><a href="${esc(m.getAttribute("href"))}" style="color:#1d5bd8;">${m.innerHTML}</a></b>`;
@@ -687,10 +881,16 @@ function exportHtml({ plain = false } = {}) {
   });
   clone.querySelectorAll("blockquote").forEach((q) => {
     const p = document.createElement("p"); p.setAttribute("style", align);
-    p.innerHTML = `<b><span style="color:#02a84b;">“ ${q.innerHTML} ”</span></b>`; q.replaceWith(p);
+    p.innerHTML = `<b><span style="color:#02a84b;font-size:15px;">“ ${q.innerHTML} ”</span></b>`; q.replaceWith(p);
   });
   clone.querySelectorAll(".capt").forEach((c) => { c.setAttribute("style", "text-align:center;"); c.innerHTML = `<span style="color:#868e96;font-size:13px;">${c.innerHTML}</span>`; });
-  clone.querySelectorAll("p").forEach((p) => { if (!p.getAttribute("style")) p.setAttribute("style", p.classList.contains("info") ? "" : align); p.removeAttribute("class"); });
+  clone.querySelectorAll("p").forEach((p) => {
+    if (!p.getAttribute("style")) p.setAttribute("style", p.classList.contains("info") ? "" : align);
+    p.removeAttribute("class");
+    // 글자 모양을 직접 적어 둔다. 안 그러면 네이버 에디터가 바로 앞 소제목(굵게·19)을 이어 붙인다.
+    if (p.textContent.trim() && !p.querySelector('span[style*="font-size"]'))
+      p.innerHTML = `<span style="font-size:15px;font-weight:normal;">${p.innerHTML}</span>`;
+  });
   const parts = Array.from(clone.children).map((el) => el.outerHTML);
   return { html: parts.join("<p><br></p>"), text: parts.map(htmlToText).join("\n\n") };
 }
@@ -726,6 +926,89 @@ $("titles").addEventListener("click", async (e) => {
   toast((await copy(el.dataset.t)) ? "제목을 복사했어요" : "복사하지 못했어요.");
 });
 
+/* ---------- 협찬 배너 (이 휴대폰에만 저장) ---------- */
+const DEFAULT_SPONSORS = ["강남맛집", "디너의여왕", "리뷰노트", "슈퍼멤버스"];
+function loadBanners() {
+  return store.get("banners") || DEFAULT_SPONSORS.map((n, i) => ({ id: `b${i + 1}`, name: n, image: "", link: "", position: "top" }));
+}
+function saveBanners(list) {
+  try { localStorage.setItem("bh_banners", JSON.stringify(list)); return true; }
+  catch { $("bannerErr").textContent = "저장 공간이 부족해요. 쓰지 않는 배너를 지워 주세요."; return false; }
+}
+function fillBannerSelect() {
+  const list = loadBanners(), cur = $("banner").value;
+  $("banner").innerHTML = '<option value="">배너 없음</option>' +
+    list.map((b) => `<option value="${b.id}">${esc(b.name)}${b.image ? "" : " (이미지 없음)"}</option>`).join("");
+  if (list.some((b) => b.id === cur)) $("banner").value = cur;
+  updateBannerHint();
+}
+function updateBannerHint() {
+  const b = loadBanners().find((x) => x.id === $("banner").value);
+  $("bannerHint").textContent = !b ? "" : !b.image ? "배너 이미지가 아직 없어요. '관리'에서 등록해 주세요."
+    : `글 맨 ${b.position === "bottom" ? "아래" : "위"}에 들어가요.`;
+}
+$("banner").addEventListener("change", updateBannerHint);
+function renderBannerList() {
+  $("bannerList").innerHTML = loadBanners().map((b) => `
+    <div class="bitem" data-id="${b.id}">
+      <div class="bname">${esc(b.name)}<button data-a="del">삭제</button></div>
+      <div class="bimg" data-a="img">${b.image ? `<img src="${b.image}">` : "＋ 눌러서 배너 이미지 고르기"}</div>
+      <div class="bopts">
+        <input data-a="link" placeholder="클릭 링크 (있으면)" value="${esc(b.link || "")}">
+        <select data-a="pos"><option value="top">맨 위</option><option value="bottom" ${b.position === "bottom" ? "selected" : ""}>맨 아래</option></select>
+      </div>
+    </div>`).join("");
+}
+let bannerPickId = null;
+$("bannerManageBtn").addEventListener("click", () => { renderBannerList(); $("bannerErr").textContent = ""; $("bannerSheet").classList.add("show"); });
+$("closeBanner").addEventListener("click", () => {
+  $("bannerSheet").classList.remove("show"); fillBannerSelect();
+  if (state.post) renderPost();
+});
+$("bannerList").addEventListener("click", (e) => {
+  const t = e.target.closest("[data-a]"); if (!t) return;
+  const id = t.closest(".bitem").dataset.id;
+  if (t.dataset.a === "img") { bannerPickId = id; $("bannerFile").click(); }
+  else if (t.dataset.a === "del") {
+    const list = loadBanners(), b = list.find((x) => x.id === id);
+    if (!confirm(`'${b.name}' 배너를 지울까요?`)) return;
+    saveBanners(list.filter((x) => x.id !== id)); renderBannerList();
+  }
+});
+$("bannerList").addEventListener("change", (e) => {
+  const item = e.target.closest(".bitem"); if (!item || e.target.type === "file") return;
+  const list = loadBanners(), b = list.find((x) => x.id === item.dataset.id);
+  b.link = item.querySelector('[data-a="link"]').value.trim();
+  b.position = item.querySelector('[data-a="pos"]').value === "bottom" ? "bottom" : "top";
+  saveBanners(list);
+});
+$("bannerFile").addEventListener("change", async (e) => {
+  const f = e.target.files?.[0]; e.target.value = "";
+  if (!f || !bannerPickId) return;
+  try {
+    const bmp = await loadBitmap(f);
+    const list = loadBanners(), b = list.find((x) => x.id === bannerPickId);
+    b.image = toJpeg(bmp, 900, 0.9);  // 휴대폰 저장 공간을 아끼려고 긴 변 900px
+    if (saveBanners(list)) renderBannerList();
+  } catch { $("bannerErr").textContent = "이미지를 열 수 없어요."; }
+});
+$("addBannerBtn").addEventListener("click", () => {
+  const name = $("newBannerName").value.trim(), list = loadBanners();
+  if (!name) return ($("bannerErr").textContent = "업체 이름을 적어 주세요.");
+  if (list.some((b) => b.name === name)) return ($("bannerErr").textContent = "이미 있는 업체예요.");
+  const next = Math.max(0, ...list.map((b) => parseInt(b.id.slice(1), 10) || 0)) + 1;
+  list.push({ id: `b${next}`, name, image: "", link: "", position: "top" });
+  if (saveBanners(list)) { $("newBannerName").value = ""; $("bannerErr").textContent = ""; renderBannerList(); }
+});
+// 결과의 '사진 넣는 순서'에서 배너를 누르면 크게 보여 줘서 길게 눌러 저장할 수 있게
+$("order").addEventListener("click", (e) => {
+  const o = e.target.closest(".o[data-banner]"); if (!o) return;
+  const b = loadBanners().find((x) => x.id === o.dataset.banner); if (!b) return;
+  $("bannerViewTitle").textContent = `${b.name} 배너`; $("bannerViewImg").src = b.image;
+  $("bannerView").classList.add("show");
+});
+$("closeBannerView").addEventListener("click", () => $("bannerView").classList.remove("show"));
+
 /* ---------- 튜토리얼 ---------- */
 const TUTORIAL = [
   { icon: "👋", title: "블로그 도우미에 오신 걸 환영해요", body: `<ul>
@@ -735,15 +1018,16 @@ const TUTORIAL = [
     <div class="tip">홈 화면에 추가해 두면 앱처럼 바로 열 수 있어요.<br>아이폰: 공유 → 홈 화면에 추가 · 안드로이드: ⋮ → 홈 화면에 추가</div>` },
   { icon: "🔑", title: "처음 한 번, AI 키 넣기", body: `<ol>
       <li>오른쪽 위 <b>⚙ 설정</b>을 눌러요.</li>
-      <li>안내된 링크에서 구글 계정으로 <b>Gemini 무료 키</b>를 받아요.</li>
+      <li><b>Gemini · 무료</b>를 고르고, 안내된 링크에서 구글 계정으로 키를 받아요.</li>
       <li>받은 키(<b>AQ.</b>… 또는 <b>AIza</b>…)를 붙여 넣고 저장하면 끝!</li></ol>
+    <p style="font-size:14px;margin-top:10px">Claude 유료 키(<b>sk-ant-</b>…)가 있으면 <b>Claude · 유료</b>를 골라도 돼요. 글이 더 자연스러워요.</p>
     <div class="tip">키는 이 휴대폰에만 저장돼요. 무료 키는 하루 사용량 한도가 있어요.</div>` },
   { icon: "✍️", title: "칸 채우기", body: `<ol>
       <li><b>체험단 · 협찬</b>인지 <b>내돈내산</b>인지 골라요. 협찬이면 광고 표시 문구가 글 맨 위에 들어가요.</li>
       <li><b>가게 이름</b>과 <b>주소</b>를 적어요.</li>
       <li><b>사진</b>을 골라요. 사진을 누르면 순서 바꾸기 · 빼기를 할 수 있어요.</li>
       <li><b>가벼운 후기</b>는 생각나는 대로 짧게!</li></ol>
-    <div class="tip">체험단 가이드의 필수 내용 · 링크 · 키워드 · 말투는 <b>＋ 더 넣기</b>에 있어요.</div>` },
+    <div class="tip">아래 <b>체험단 가이드 · 글 설정</b>에서 필수 내용, 링크, 지정 키워드 횟수(기본 제목 1회 · 본문 3회), 최소 글자 수, 협찬 배너를 정할 수 있어요.</div>` },
   { icon: "✨", title: "글 만들기", body: `<ol>
       <li><b>✨ 블로그 글 만들기</b>를 누르고 1~3분 기다려요. 이 화면을 닫지 마세요.</li>
       <li>완성된 글은 <b>눌러서 바로 고칠 수 있고</b>, 고친 그대로 복사돼요.</li></ol>
@@ -779,14 +1063,15 @@ $("helpBtn2").addEventListener("click", () => openTutorial());
 
 /* ---------- 시작 ---------- */
 refreshKeyState();
+fillBannerSelect();
 (function start() {
-  const openSettingsIfNeeded = () => { if (!store.get("gemini_key")) openSettings(); };
+  const openSettingsIfNeeded = () => { if (!currentKey()) openSettings(); };
   if (!store.get("tutorial_seen")) openTutorial(openSettingsIfNeeded); else openSettingsIfNeeded();
   // 지난번 결과 이어 보기 (사진은 휴대폰에 남기지 않음)
   const last = store.get("last");
   if (last?.post && last?.form) {
     const f = last.form;
-    ["store_name", "address", "memo", "required", "links", "keyword", "category", "disclosure", "min_chars"].forEach((k) => f[k] != null && ($(k).value = f[k]));
+    ["store_name", "address", "memo", "required", "links", "keyword", "category", "disclosure", "min_chars", "kw_title", "kw_body", "banner"].forEach((k) => f[k] != null && ($(k).value = f[k]));
     if (f.disclosure) discEdited = true;
     [["kindSeg", "kind"], ["toneSeg", "tone"]].forEach(([id, key]) => { const b = $(id).querySelector(`button[data-v="${f[key]}"]`); if (b) b.click(); });
     state.post = last.post; state.form = f; renderPost();
