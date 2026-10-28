@@ -938,14 +938,17 @@ function saveBanners(list) {
 function fillBannerSelect() {
   const list = loadBanners(), cur = $("banner").value;
   $("banner").innerHTML = '<option value="">배너 없음</option>' +
-    list.map((b) => `<option value="${b.id}">${esc(b.name)}${b.image ? "" : " (이미지 없음)"}</option>`).join("");
+    list.map((b) => `<option value="${b.id}">${esc(b.name)}${b.image ? "" : b.link ? " (링크만)" : " (이미지 없음)"}</option>`).join("");
   if (list.some((b) => b.id === cur)) $("banner").value = cur;
   updateBannerHint();
 }
 function updateBannerHint() {
   const b = loadBanners().find((x) => x.id === $("banner").value);
-  $("bannerHint").textContent = !b ? "" : !b.image ? "배너 이미지가 아직 없어요. '관리'에서 등록해 주세요."
-    : `글 맨 ${b.position === "bottom" ? "아래" : "위"}에 들어가요.`;
+  const where = b ? `글 맨 ${b.position === "bottom" ? "아래" : "위"}에` : "";
+  $("bannerHint").textContent = !b ? ""
+    : b.image ? `${where} 들어가요.`
+    : b.link ? `이미지 없이 링크만 ${where} 들어가요. 이미지는 '관리'에서 넣을 수 있어요.`
+    : "배너 이미지나 링크가 아직 없어요. '관리'에서 등록해 주세요.";
 }
 $("banner").addEventListener("change", updateBannerHint);
 function renderBannerList() {
@@ -956,6 +959,10 @@ function renderBannerList() {
       <div class="bopts">
         <input data-a="link" placeholder="클릭 링크 (있으면)" value="${esc(b.link || "")}">
         <select data-a="pos"><option value="top">맨 위</option><option value="bottom" ${b.position === "bottom" ? "selected" : ""}>맨 아래</option></select>
+      </div>
+      <div class="bopts" style="margin-top:6px">
+        <input data-a="code" placeholder="배너 코드나 이미지 주소 붙여넣기">
+        <button class="btn" data-a="import" style="flex:none;padding:10px 12px;font-size:13px">가져오기</button>
       </div>
     </div>`).join("");
 }
@@ -969,14 +976,45 @@ $("bannerList").addEventListener("click", (e) => {
   const t = e.target.closest("[data-a]"); if (!t) return;
   const id = t.closest(".bitem").dataset.id;
   if (t.dataset.a === "img") { bannerPickId = id; $("bannerFile").click(); }
+  else if (t.dataset.a === "import") importBanner(id, t.closest(".bitem").querySelector('[data-a="code"]').value);
   else if (t.dataset.a === "del") {
     const list = loadBanners(), b = list.find((x) => x.id === id);
     if (!confirm(`'${b.name}' 배너를 지울까요?`)) return;
     saveBanners(list.filter((x) => x.id !== id)); renderBannerList();
   }
 });
+// 업체가 준 배너 코드(<a href><img src></a>)나 이미지 주소로 채우기
+async function importBanner(id, code) {
+  code = (code || "").trim();
+  const unesc = (x) => { const t = document.createElement("textarea"); t.innerHTML = x; return t.value; };
+  const img = code.match(/<img[^>]+src\s*=\s*["']([^"']+)/i), href = code.match(/<a[^>]+href\s*=\s*["']([^"']+)/i);
+  let imgUrl = img ? unesc(img[1]) : null, link = href ? unesc(href[1]) : null;
+  if (!img && !href) {
+    if (!/^(https?:)?\/\//.test(code)) { $("bannerErr").textContent = "주소(https://…)나 배너 코드(<a …><img …></a>)가 아니에요."; return; }
+    imgUrl = code;
+  }
+  if (imgUrl && imgUrl.startsWith("//")) imgUrl = "https:" + imgUrl;
+  const list = loadBanners(), b = list.find((x) => x.id === id);
+  let gotImage = false;
+  if (imgUrl) {
+    try {
+      const r = await fetch(imgUrl, { mode: "cors" });
+      const blob = await r.blob();
+      if (!r.ok || !blob.type.startsWith("image/")) throw 0;
+      b.image = toJpeg(await loadBitmap(blob), 900, 0.9);
+      gotImage = true;
+    } catch {
+      if (!img) link = link || imgUrl;  // 이미지가 아닌 주소 → 클릭 링크
+    }
+  }
+  if (link) b.link = link.trim();
+  if (!saveBanners(list)) return;
+  renderBannerList();
+  if (img && !gotImage) $("bannerErr").textContent = "배너 이미지는 이 사이트가 막아서 못 가져왔어요. 이미지를 휴대폰에 저장한 뒤 위 칸을 눌러 골라 주세요." + (link ? " (링크는 넣었어요)" : "");
+  else { $("bannerErr").textContent = ""; toast(gotImage ? "배너 이미지를 가져왔어요" + (link ? " · 링크도 넣었어요" : "") : "클릭 링크로 넣었어요"); }
+}
 $("bannerList").addEventListener("change", (e) => {
-  const item = e.target.closest(".bitem"); if (!item || e.target.type === "file") return;
+  const item = e.target.closest(".bitem"); if (!item || e.target.type === "file" || e.target.dataset.a === "code") return;
   const list = loadBanners(), b = list.find((x) => x.id === item.dataset.id);
   b.link = item.querySelector('[data-a="link"]').value.trim();
   b.position = item.querySelector('[data-a="pos"]').value === "bottom" ? "bottom" : "top";
